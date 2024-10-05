@@ -146,8 +146,111 @@ In order to introduce a new learning opportunity and make the game more unique, 
 
 
 \section{Data types} \label{ch:dataTypes}
+%ghost and player
+
+The first thing to implement are models for the player and the ghosts. These objects need to move, and store some information about them. 
+
+Movable objects in the game are called entities. These entities have a direction in which they are moving, a speed and a current position. These three data types are wrapped together in a record called movement. Furthermore, an entity can be alive or dead. 
+
+Then, we can create a data type for the player and the ghosts. A player gets lives, next to being an entity. And the ghosts get some identifiers for it's name and it's current behaviour. Lastly, a data type got created for an optional local MultiPlayer feature, where a second player can control one of the ghosts.
+
 \begin{lstlisting}[language=Haskell]
-  --haskell code
+  data isAlive = Alive | Dead
+
+  data Direction = Left | Right | Up | Down
+  
+  type EntityPosition = (Float, Float)
+  
+  data Movement {
+    direction :: Direction,
+    speed :: Int,
+    position :: EntityPosition
+  }
+
+  data Entity {
+    movement :: Movement,
+    alive :: isAlive
+  }
+
+  data GhostType = Inky 
+                 | Pinky 
+                 | Blinky 
+                 | Clyde 
+  
+  data BehaviourMode = Chase | Scatter | Frightened | Home
+  type Lives = Int
+
+  data Player = {
+    entity :: Entity
+    lives :: Lives
+  }
+
+  data Ghost = {
+    entity :: Entity,
+    ghostName :: GhostType
+    behaviourMode :: Behaviour
+  }
+
+  data PlayerGhost = {
+    entity :: Entity
+    ghostName :: GhostType
+  }
+\end{lstlisting}
+
+% levels
+\noindent The maze consists of two type of tiles, where each tile is an x by x square in a grid. The tile can be either a floor or a wall where each floor can be either one of the consumbles or an empty floor. The walls can be either a corner or a straight wall, each with their own orientation. This will be implemented as follows:
+\begin{lstlisting}[language=Haskell]
+  -- consider making sure this number is always non-negative
+  type Level = Int
+
+  data CornerOrientation = SE | NW | NE | SW
+  data WallOrientation   = Horizontal | Vertical
+  
+  data WallShape  = Corner CornerOrientation
+                  | Wall WallOrientation 
+
+  data ConsumableType = Pellet | SuperPellet | Cherry
+
+  data FloorType = Consumable ConsumableType | EmptyTile
+  data Tile = Floor FloorType | Wall WallShape
+\end{lstlisting}
+
+
+The maze will utilise a Map structure in order to speed up execution. This would result in a reduction in the scaling from $O(n)$ to $O(logn)$ for tile lookup. As the program is expected to lookup a tile every time one has to check for collision, it is crucial that this takes as little time as possible. This is only possible if the key, which is the x and y coordinates of the tile, can be ordered. The instance below is an example but is important to show that the keys are indeed orderable. In this case it is possible using the implementation below. Thus, two tiles in the maze might look like: [((1, 0), Floor (Consumable Pellet)), ((2, 0), Wall (Corner SE))]. 
+
+\begin{lstlisting}[language=Haskell]
+  type TilePosition = (Int, Int) -- (x, y)
+
+  type Maze = Map TilePosition Tile
+
+  instance Ord TilePosition where 
+    (<=) (x, y) (a, b) | x < a = True 
+                       | x > a = False
+                       | Otherwise = y <= b
+
+\end{lstlisting}
+
+\newpage
+%gamestate
+The game state is the final data type the contains all the data of the game. It's job is to be the model in the MVC structure. 
+
+Some data types that have been added here, but not discussed before are some scorekeepers, like elapsedTime and score. Furthermore, the current
+\begin{lstlisting}[language=Haskell]
+  data GameStatus = Running | GameOver | Paused
+  data PlayerMode = SingePlayer | MultiPlayer
+  type Score = Int
+
+  data GameState = Gamestate{
+    elapsedTime :: Float,
+    score :: Score,
+    status :: GameStatus,
+    playerMode :: PlayerMode,
+    maze :: Maze, 
+    level :: Level,
+    player :: Player,
+    ghosts :: [Ghost],
+    secondPlayer :: Maybe PlayerGhost
+  }
 \end{lstlisting}
 
 
