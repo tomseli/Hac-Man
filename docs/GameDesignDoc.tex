@@ -8,6 +8,9 @@
 \usepackage{fancyhdr}
 \usepackage[colorinlistoftodos]{todonotes}
 
+%syntax highlighting and code blocks
+\usepackage{listings}
+
 
 \usepackage{tikz}
 \usetikzlibrary{positioning,calc}
@@ -33,17 +36,19 @@
 \usepackage{listings}
 \usepackage{xcolor}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.97,0.97,0.97}
-\definecolor{keycolour}{rgb}{0.5,0.5,0.5}
-
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{backcolour},   
     commentstyle=\color{codegreen},
-    keywordstyle=\color{keycolour},
+    keywordstyle=\color{blue},
     numberstyle=\tiny\color{codegray},
     stringstyle=\color{codepurple},
     basicstyle=\ttfamily\footnotesize,
@@ -56,8 +61,12 @@
     showspaces=false,                
     showstringspaces=false,
     showtabs=false,                  
-    tabsize=1
-}
+    tabsize=2
+} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % Useful packages
 % \usepackage{amsmath}
@@ -106,33 +115,54 @@
     \end{tikzpicture}
 }}
 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%beginning of document
 \begin{document}
-
 \lstset{style=mystyle}
-
 \maketitle
-
-\begin{abstract}
-\lipsum[1]
-
-\end{abstract}
+% \begin{abstract}
+% \lipsum[1]
+% \end{abstract}
 {\bf \textit{Keywords--}} game game gamin
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%introduction
 \section{Introduction} \label{ch:Introduction}
-\lipsum[2]
-
-\begin{Figure}
-  \centering
-  \includegraphics[scale=0.45]{placeholder.png}
-  \captionof{figure}{An example}
-  \label{fig:placeholder}
-\end{Figure}
 
 
+\section{Game Choice} \label{ch:GameChoice}
+what game and why?
 
-\printbibliography
+\section{probeersel}
+\begin{lstlisting}[language=Haskell]
+  sum :: [a] -> a
+  sum = foldr (+) 0
+\end{lstlisting}
+
+
+
+
+
+
+% \printbibliography
 
 \end{document}
+
+
+
+
+% \begin{Figure}
+%   \centering
+%   \includegraphics[scale=0.45]{placeholder.png}
+%   \captionof{figure}{An example}
+%   \label{fig:placeholder}
+% \end{Figure}
+
 
 
 % \begin{Figure}
