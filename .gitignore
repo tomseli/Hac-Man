@@ -25,6 +25,9 @@ cabal.project.local~
 
 .vscode
 
+*.pdf
+docs/build/
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
