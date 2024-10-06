@@ -128,7 +128,7 @@
 % \begin{abstract}
 % \lipsum[1]
 % \end{abstract}
-{\bf \textit{Keywords--}} game game gamin
+% {\bf \textit{Keywords--}} game game gamin
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -172,6 +172,7 @@ Then, we can create a data type for the player and the ghosts. A player gets liv
     alive :: isAlive
   }
 
+  
   data GhostType = Inky 
                  | Pinky 
                  | Blinky 
@@ -234,14 +235,15 @@ The maze will utilise a Map structure in order to speed up execution. This would
 %gamestate
 The game state is the final data type the contains all the data of the game. It's job is to be the model in the MVC structure. 
 
-Some data types that have been added here, but not discussed before are some scorekeepers, like elapsedTime and score. Furthermore, the current
+Some data types that have been added here, but not discussed before are some scorekeepers, like elapsedTime and score. Furthermore, the current status of the game, e.g., it being paused or running, is kept in the game state.
 \begin{lstlisting}[language=Haskell]
   data GameStatus = Running | GameOver | Paused
   data PlayerMode = SingePlayer | MultiPlayer
   type Score = Int
+  type Time = Float
 
   data GameState = Gamestate{
-    elapsedTime :: Float,
+    elapsedTime :: Time,
     score :: Score,
     status :: GameStatus,
     playerMode :: PlayerMode,
@@ -255,32 +257,34 @@ Some data types that have been added here, but not discussed before are some sco
 
 
 \section{Minumum Requirements} \label{ch:minumumRequirements}
+\noindent \textbf{Player} The player can control Pac-Man, and the menus, using the WASD-keys on the keyboard.\\
 
-\textbf{Player} The player can control Pac-Man, and the menus, using the WASD-keys on the keyboard.
+\noindent \textbf{Enemies} The computer controls the red ghost, called Blinky. Blinky is the simplest of four ghost and tries to chase Pac-Man.\\
 
-\textbf{Enemies} The computer controls the red ghost, called Blinky. Blinky is the simplest of four ghost and tries to chase Pac-Man.
+\noindent \textbf{Randomness} A ghost can exist in three states; Scatter, chase and frightened. When a ghost is frightened it will pick a random direction at each intersection.\\
 
-\textbf{Randomness} A ghost can exist in three states; Scatter, chase and frightened. When a ghost is frightened it will pick a random direction at each intersection.
-
-\textbf{Animation} The amount of animations in Pac-Man is limited. The animations that will be implemented are:
+\noindent \textbf{Animation} The amount of animations in Pac-Man is limited. The animations that will be implemented are:
 \begin{itemize}
   \item Pac-Man's walking animation
   \item Pac-Man's death animation
   \item Ghost's movement
-  \item Ghost's frightened
+  \item Ghost's frightened\\
 \end{itemize}
 
-\textbf{Pause} The game can be paused using the "pause" or "esc" keys on the keyboard.
+\noindent \textbf{Pause} The game can be paused using the "pause" or "esc" keys on the keyboard.\\
 
-\textbf{Interaction with the file system} A running highscore will be kept in a file.
+\noindent \textbf{Interaction with the file system} A running highscore will be kept in a file.\\
 
+
+\newpage
 \section{Optional Requirements} \label{ch:optionalRequirements}
 
-\textbf{Levels} Originally, Pac-Man only contains one level, that gets more difficult as you complete them. At least one additional level will be added as an option for the player.
+\textbf{Levels} Originally, Pac-Man only contains one level, that gets more difficult as you complete them. At least one additional level will be added as an option for the player. In the chapter \ref{ch:dataTypes}, it was discussed how the maze data type is made. This type lends itself for easy creation of levels as one needs to simply provide each coordinate (written in tuple), with the desired tile type. Another option would be to write the levels as a single list of special characters, and making a function that converts to the key and value for the Map. The storage of each level may be accomplished through the utilisation of either the file system that parses the levels or the implementation of hard-coded levels.
 
-\textbf{Different enemies} Pac-Man contains several ghosts. At a minimum Blinky will be implemented. Additional ghosts will be Pinky (pink), Inky (cyan) and Clyde (yellow).
+\textbf{Different enemies} Pac-Man contains several ghosts. At a minimum Blinky will be implemented. Additional ghosts will be Pinky (pink), Inky (cyan) and Clyde (yellow), and if time allows, some additional ghosts could be added.
 
-\textbf{Multi-player} The original way to play against another player in Pac-Man is to beat eachother's highscore. Optionally, a way to control one of the ghosts will be added to the game.
+\textbf{Multi-player} The original way to play against another player in Pac-Man is to beat eachother's highscore. Optionally, a way to control one of the ghosts will be added to the game. In order to simplify the process, the entities and player controller will be defined in the most abstract manner possible, thus facilitating the reuse of fucntions. For example, a "moveX" functions which could take in a current position and a numerical to change the position of an entity. As seen in chapter \ref{ch:dataTypes}, the ghosts and player use the same movement data type, thus facilitating the use of these generelized functions.
+
 
 
 \section{Pure/Impure seperation} \label{ch:pureSeperation}
