@@ -181,18 +181,18 @@ Then, we can create a data type for the player and the ghosts. A player gets liv
   type Lives = Int
 
   data Player = {
-    entity :: Entity
+    entity :: Entity,
     lives :: Lives
   }
 
   data Ghost = {
     entity :: Entity,
-    ghostName :: GhostType
+    ghostName :: GhostType,
     behaviourMode :: Behaviour
   }
 
   data PlayerGhost = {
-    entity :: Entity
+    entity :: Entity,
     ghostName :: GhostType
   }
 \end{lstlisting}
