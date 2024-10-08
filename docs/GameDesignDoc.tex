@@ -172,7 +172,6 @@ Then, we can create a data type for the player and the ghosts. A player gets liv
     alive :: isAlive
   }
 
-  
   data GhostType = Inky 
                  | Pinky 
                  | Blinky 
@@ -283,13 +282,29 @@ Some data types that have been added here, but not discussed before are some sco
 
 \textbf{Different enemies} Pac-Man contains several ghosts. At a minimum Blinky will be implemented. Additional ghosts will be Pinky (pink), Inky (cyan) and Clyde (yellow), and if time allows, some additional ghosts could be added.
 
-\textbf{Multi-player} The original way to play against another player in Pac-Man is to beat eachother's highscore. Optionally, a way to control one of the ghosts will be added to the game. In order to simplify the process, the entities and player controller will be defined in the most abstract manner possible, thus facilitating the reuse of fucntions. For example, a "moveX" functions which could take in a current position and a numerical to change the position of an entity. As seen in chapter \ref{ch:dataTypes}, the ghosts and player use the same movement data type, thus facilitating the use of these generelized functions.
+\textbf{Multi-player} The original way to play against another player in Pac-Man is to beat eachother's highscore. Optionally, a way to control one of the ghosts will be added to the game. In order to simplify the process, the entities and player controller will be defined in the most abstract manner possible, thus facilitating the reuse of fucntions. For example, a "moveStep" function which could take in a current position and a numerical to change the position of an entity. As seen in chapter \ref{ch:dataTypes}, the ghosts and player use the same movement data type, thus facilitating the use of these generelized functions.
 
+\begin{lstlisting}
+  moveStep :: Entity -> Int -> Entity
+\end{lstlisting}
 
 
 \section{Pure/Impure seperation} \label{ch:pureSeperation}
-\section{Abstraction} \label{ch:abstraction}
+The goal is to go from impure to pure parts as soon as possible. To do this, we need to create functions that take only inputs from its parameters. For example, the highscore is kept in a file. Reading/writing this file uses impure function, but updating the list of highscores will be pure. Thus, reading/ writing will be impure but updating the highscore list is pure.
 
+\begin{lstlisting}
+  saveHighscore ::  [Int] -> IO ()
+  updateHighscore :: [Int] -> Int -> [Int]
+\end{lstlisting}
+
+\section{Abstraction} \label{ch:abstraction}
+Several steps for abstraction have already been taken. For example, the "moveStep" function takes an entity, and does not care which entity (player or NPC) it is actually a part of. Besides movement, entities are also alive or dead, using the data type "isAlive" 
+
+Furthermore, since tiles are both consumables or empty, it should be trivial to implement a function that updates a tile based on the position of the player. An example function might be
+
+\begin{lstlisting}
+  updateTile :: Player -> Tile -> Tile
+\end{lstlisting}
 
 
 
