@@ -136,14 +136,8 @@
 \section{Introduction} \label{ch:Introduction}
 The objective of this design document is to present the design choices for the creation of Pac-Man, along with their respective justifications. The decision to implement Pac-man is based on on the expected freedom the game offers in its implementation. Furthermore, Pac-Man will allow us to implement some of the optional requirements in addition to the minimum requirements. Additionally, some variations on the fundemental gameplay are introduced to make the game more unique.
 
-
-% \begin{itemize}
-%   \item [\textbf{Player}]
-% \end{itemize}
-
 \section{Variations on the base game} \label{ch:twist}
 In order to introduce a new learning opportunity and make the game more unique, a player adversary will be introduced. This will introduce, a co-op type, multiplayer aspect to the game. This feature will introduce a second set of player inputs which allows the control of one of the ghosts.
-
 
 \section{Data types} \label{ch:dataTypes}
 %ghost and player
@@ -200,7 +194,6 @@ Then, we can create a data type for the player and the ghosts. A player gets liv
 % levels
 \noindent The maze consists of two type of tiles, where each tile is an x by x square in a grid. The tile can be either a floor or a wall where each floor can be either one of the consumbles or an empty floor. The walls can be either a corner or a straight wall, each with their own orientation. This will be implemented as follows:
 \begin{lstlisting}[language=Haskell]
-  -- consider making sure this number is always non-negative
   type Level = Int
 
   data CornerOrientation = SE | NW | NE | SW
@@ -227,7 +220,6 @@ The maze will utilise a Map structure in order to speed up execution. This would
     (<=) (x, y) (a, b) | x < a = True 
                        | x > a = False
                        | Otherwise = y <= b
-
 \end{lstlisting}
 
 \newpage
@@ -305,14 +297,6 @@ Furthermore, since tiles are both consumables or empty, it should be trivial to 
 \begin{lstlisting}
   updateTile :: Player -> Tile -> Tile
 \end{lstlisting}
-
-
-
-
-
-
-
-% \printbibliography
 
 \end{document}
 
