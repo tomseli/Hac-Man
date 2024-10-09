@@ -10,10 +10,8 @@ import System.Exit
 
 step :: Float -> GameState -> IO GameState
 step secs state = do
-  
-  _ <- return $ state { elapsedTime = elapsedTime state + secs }
   -- this should always be the last in the pipeline
-  checkStatus state 
+  checkStatus state { elapsedTime = elapsedTime state + secs }
 
 
 eventHandler :: Event -> GameState -> IO GameState
