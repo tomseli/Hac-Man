@@ -1,4 +1,4 @@
-module Model where 
+module Model.Model where 
 
 data GameStatus = Running | GameOver | Paused | Quitting
 

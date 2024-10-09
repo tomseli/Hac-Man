@@ -1,8 +1,8 @@
 {-# language NamedFieldPuns #-}
 
-module Controller where 
+module Controller.Controller where 
 
-import Model 
+import Model.Model 
 
 import Graphics.Gloss.Interface.IO.Game -- Event, EventKey
 import System.Exit

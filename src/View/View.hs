@@ -1,6 +1,6 @@
-module View where
+module View.View where
 
-import Model
+import Model.Model
 import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Data.Color
 
