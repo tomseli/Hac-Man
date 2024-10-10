@@ -17,7 +17,8 @@ eventHandler :: Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state
 
 handleResize :: Event -> GameState -> GameState
-handleResize (EventResize (x, y)) state = state{windowResolution = (x, y)}
+handleResize (EventResize (x, y)) state@GameState{windowInfo = WindowInfo _ s} = 
+                                        state{windowInfo = WindowInfo (x, y) s}
 handleResize _ state = state
 
 handleKeys :: Event -> GameState -> GameState
