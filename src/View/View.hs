@@ -8,9 +8,8 @@ import View.Transform (transformPicture)
 
  -- picture pipeline, add functions with signature func:: Picture -> Picture
 render :: GameState -> IO Picture
-render state= do
-  transformPicture $  (renderDebugInfo state 
-                      . renderLogo) Blank 
+render state = do
+  return $ transformPicture state $  (renderDebugInfo state . renderLogo) Blank 
 
 renderLogo:: Picture -> Picture
 renderLogo pic = 

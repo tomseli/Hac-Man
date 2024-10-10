@@ -7,10 +7,14 @@ import Controller.Controller
 import Model.Model
 import View.View
 
+window :: Display
+window = InWindow "Hac-Man" (1280, 720) (0, 0)
+-- window = FullScreen
+
 main :: IO ()
 main = do
         playIO 
-          FullScreen 
+          window 
           black 
           30 
           initialState 
