@@ -3,6 +3,10 @@ module View.Transform where
 import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Interface.Environment
 
-transformTranslate :: Float -> Float -> Picture -> Picture
-transformTranslate x y pic = translate x y pic
 
+transformPicture:: Picture -> IO Picture
+transformPicture pic = do 
+  (x, y) <- getScreenSize
+  let xOffset = x `div` 2
+  let yOffset = y `div` 2
+  return $ translate (fromIntegral (-xOffset)) (fromIntegral (yOffset)) pic
