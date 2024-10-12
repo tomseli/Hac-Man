@@ -4,7 +4,7 @@ import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Data.Color
 
 import Model.Model
-import View.Transform (transformPicture)
+import View.Transform ( transformPicture, gameArea )
 
  -- picture pipeline, add functions with signature func:: Picture -> Picture
 render :: GameState -> IO Picture
@@ -13,18 +13,21 @@ render state@GameState{windowInfo = wInfo} = do
 
 renderLogo:: Picture -> Picture
 renderLogo pic = 
-  (color white . translate 700 (-125)) (color yellow (text "PACMAN")) <> pic
+  (color white . translate 150 (-125)) (color yellow (text "PACMAN")) <> pic
 
 renderDebugInfo :: GameState -> Picture -> Picture
 renderDebugInfo state@GameState{enableDebug = debug} pic 
-  | debug     = renderBoundingBox <> renderDebugTimer state <> pic
+  | debug     = renderGameArea <> renderDebugTimer state <> pic
   | otherwise = Blank <> pic
 
 renderDebugTimer :: GameState -> Picture
 renderDebugTimer GameState{elapsedTime = time} = 
   (color red . translate 10 (-25) . scale 0.25 0.25) $ text (show time)
 
-renderBoundingBox :: Picture
-renderBoundingBox = 
+renderGameArea :: Picture
+renderGameArea = 
   color (makeColor 0 1 0 0.15) $ 
-  polygon [(0,0), (1280, 0), (1280, -720), (0, -720)] 
+  polygon [(0,0), (x, 0), (x, -y), (0, -y)]
+  where
+    x = fromIntegral $ fst gameArea
+    y = fromIntegral $ snd gameArea 

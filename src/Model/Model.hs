@@ -3,9 +3,7 @@ import Graphics.Gloss.Data.Picture ( Point )
 
 
 data GameStatus = Running | GameOver | Paused | Quitting
-data WindowInfo = WindowInfo { resolution :: (Int, Int)
-                              , scaleImg     :: Float
-                             }
+newtype WindowInfo = WindowInfo {resolution :: (Int, Int)}
 
 type RelativePoint = (Int, Int)
 type AbsolutePoint = (Int, Int)
@@ -25,5 +23,5 @@ initialState = GameState
                 , elapsedTime      = 0 
                 , position         = (0, 0) 
                 , enableDebug      = True
-                , windowInfo       = WindowInfo (0, 0) 0.8 -- gets updated first frame
+                , windowInfo       = WindowInfo (0, 0)
                 }

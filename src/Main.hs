@@ -7,8 +7,11 @@ import Controller.Controller
 import Model.Model
 import View.View
 
+-- needed when opening in windowed mode
+-- import View.Transform
+
 window :: Display
--- window = InWindow "Hac-Man" (1280, 720) (0, 0)
+-- window = InWindow "Hac-Man" gameArea (0, 0)
 window = FullScreen
 
 main :: IO ()
