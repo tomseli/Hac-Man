@@ -1,24 +1,33 @@
 module View.View where
 
-import Model.Model
 import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Data.Color
 
+import Model.Model
+import View.Transform ( transformPicture, gameArea )
 
  -- picture pipeline, add functions with signature func:: Picture -> Picture
 render :: GameState -> IO Picture
-render state= do
-  return $  (debugInfo state 
-            . renderLogo) Blank 
+render state@GameState{windowInfo = wInfo} = do
+  return $ transformPicture wInfo $  (renderDebugInfo state . renderLogo) Blank 
 
 renderLogo:: Picture -> Picture
 renderLogo pic = 
-  (color white . translate (-250) 350) (color yellow (text "PACMAN")) <> pic
+  (color white . translate 150 (-125)) (color yellow (text "PACMAN")) <> pic
 
-debugInfo :: GameState -> Picture -> Picture
-debugInfo state@GameState{enableDebug = debug} pic | debug     = renderDebugTimer state <> pic
-                                                   | otherwise = Blank <> pic
+renderDebugInfo :: GameState -> Picture -> Picture
+renderDebugInfo state@GameState{enableDebug = debug} pic 
+  | debug     = renderGameArea <> renderDebugTimer state <> pic
+  | otherwise = Blank <> pic
 
 renderDebugTimer :: GameState -> Picture
 renderDebugTimer GameState{elapsedTime = time} = 
-  (color red . translate (-750) 450 . scale 0.25 0.25) $ text (show time)
+  (color red . translate 10 (-25) . scale 0.25 0.25) $ text (show time)
+
+renderGameArea :: Picture
+renderGameArea = 
+  color (makeColor 0 1 0 0.15) $ 
+  polygon [(0,0), (x, 0), (x, -y), (0, -y)]
+  where
+    x = fromIntegral $ fst gameArea
+    y = fromIntegral $ snd gameArea 

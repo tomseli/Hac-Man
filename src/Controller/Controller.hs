@@ -14,7 +14,11 @@ step secs state = do
   checkStatus state { elapsedTime = elapsedTime state + secs }
 
 eventHandler :: Event -> GameState -> IO GameState
-eventHandler e state = return $ handleKeys e state
+eventHandler e state = return $ (handleKeys e . handleResize e) state
+
+handleResize :: Event -> GameState -> GameState
+handleResize (EventResize (x, y)) state = state{windowInfo = WindowInfo (x, y)}
+handleResize _ state = state
 
 handleKeys :: Event -> GameState -> GameState
 handleKeys (EventKey key keyState _ _) state 
