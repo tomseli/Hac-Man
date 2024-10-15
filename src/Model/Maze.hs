@@ -32,16 +32,17 @@ X  X
 X  X
 XXXX
 -}
+-- BUG: The ordering of the printing might not be correct!
 testMaze :: Int -> Maze
 testMaze n = go 0 Map.empty
   where
     go x m
       | x >= n * n          = m -- base case
-      | snd coord == 0     = go (x + 1) (Map.insert coord wallH m) -- top row
-      | snd coord == n - 1 = go (x + 1) (Map.insert coord wallH m) -- bottom row
-      | fst coord == 0     = go (x + 1) (Map.insert coord wallV m) -- left column
-      | fst coord == n - 1 = go (x + 1) (Map.insert coord wallV m) -- right column
-      | otherwise          = go (x + 1) (Map.insert coord empty m) -- everything else
+      | fst coord == 0     = go (x + 1) (Map.insert coord wallV m) 
+      | fst coord == n - 1 = go (x + 1) (Map.insert coord wallV m) 
+      | snd coord == 0     = go (x + 1) (Map.insert coord wallH m) 
+      | snd coord == n - 1 = go (x + 1) (Map.insert coord wallH m) 
+      | otherwise          = go (x + 1) (Map.insert coord empty m) 
       where
         coord = (x `mod` n, x `div` n)
         wallH = MkWall (MkWallShape Horizontal)
