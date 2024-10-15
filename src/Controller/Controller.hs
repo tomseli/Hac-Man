@@ -1,43 +1,56 @@
 {-# language NamedFieldPuns #-}
 
-module Controller.Controller where 
+module Controller.Controller where
 
-import Model.Model 
+import Model.Model
+import Model.Entities
+import Controller.EntityController
 
-import Graphics.Gloss.Interface.IO.Game -- Event, EventKey
+import qualified Graphics.Gloss.Interface.IO.Game as Gloss-- Event, EventKey
 import System.Exit
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 
 step :: Float -> GameState -> IO GameState
-step secs state = do
+step dt state = do
   -- this should always be the last in the pipeline
-  checkStatus state { elapsedTime = elapsedTime state + secs }
+  checkStatus state { elapsedTime = elapsedTime state + dt, player = updatedPlayer }
+    where
+      updatedPlayer = (player state) {entity = moveStep ((entity.player) state) ((speed.movement.entity.player) state * dt)}
 
-eventHandler :: Event -> GameState -> IO GameState
+eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state
 
-handleResize :: Event -> GameState -> GameState
-handleResize (EventResize (x, y)) state = state{windowInfo = MkWindowInfo (x, y)}
+handleResize :: Gloss.Event -> GameState -> GameState
+handleResize (Gloss.EventResize (x, y)) state = state{windowInfo = MkWindowInfo (x, y)}
 handleResize _ state = state
 
-handleKeys :: Event -> GameState -> GameState
-handleKeys (EventKey key keyState _ _) state 
-  | keyState == Up = state
+handleKeys :: Gloss.Event -> GameState -> GameState
+handleKeys (Gloss.EventKey key keyState _ _) state
+  | keyState == Gloss.Up = state
   | otherwise = case key of
                   -- Esc to terminate the application
-                  (SpecialKey KeyEsc)  -> state{status = Quitting}
-                  -- 'a' to crash the application
-                  (Char 'a')           -> undefined
+                  (Gloss.SpecialKey Gloss.KeyEsc)  -> state{status = Quitting}
+                  -- 'a' to turn player left
+                  (Gloss.Char 'a')           -> state {player = changeDirPlayer (player state) Model.Entities.Left}
+                  -- 'w' to turn player up
+                  (Gloss.Char 'w')           -> state {player = changeDirPlayer (player state) Model.Entities.Up}
+                  -- 's' to turn player Down
+                  (Gloss.Char 's')           -> state {player = changeDirPlayer (player state) Model.Entities.Down}
+                  -- 's' to turn player Right
+                  (Gloss.Char 'd')           -> state {player = changeDirPlayer (player state) Model.Entities.Right}
+                  (Gloss.Char 'q')           -> error ":("
                   -- o opens a debug overlay
-                  (Char 'o')           -> toggleDebug state
-                  _                    -> state 
+                  (Gloss.Char 'o')           -> toggleDebug state
+                  _                    -> state
 handleKeys _ state = state
 
 toggleDebug :: GameState -> GameState
 toggleDebug state@MkGameState{enableDebug} = state{enableDebug = not enableDebug}
 
 checkStatus :: GameState -> IO GameState
-checkStatus state@MkGameState{status} = 
+checkStatus state@MkGameState{status} =
   case status of
     Quitting -> exitSuccess
     _        -> return state

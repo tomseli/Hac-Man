@@ -1,24 +1,43 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use bimap" #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
+
 module View.View where
+
 
 import qualified Graphics.Gloss.Data.Picture as Gloss
 import qualified Graphics.Gloss.Data.Color as Gloss
 
 import Model.Model
 import Model.Maze
+import Model.Entities
 import View.Transform ( transformPicture, gameArea )
 import qualified Data.Map as Map
 
 tileSize :: (Float, Float)
-tileSize = (16, 16)
+tileSize = (25, 25)
 
  -- picture pipeline, add functions with signature func:: Picture -> Picture
 render :: GameState -> IO Gloss.Picture
-render state@MkGameState{windowInfo = wInfo} = do
+render state@MkGameState{windowInfo = wInfo, player = wPlayer} = do
   return $ transformPicture wInfo $  (renderDebugInfo state 
-                                     . renderLogo
-                                     . renderMaze state) Gloss.Blank 
+                                      . renderLogo 
+                                      . renderMaze state  
+                                      . renderPlayer wPlayer
+                                     ) Gloss.Blank
+
+-- Add a bitmap (Add, when making the renderEntity)
+renderPlayer :: Player -> Gloss.Picture -> Gloss.Picture
+renderPlayer MkPlayer { entity } = renderEntity entity
+
+renderEntity :: Entity -> Gloss.Picture -> Gloss.Picture
+renderEntity MkEntity{ movement } pic =
+  Gloss.translate (newX * fst tileSize + (fst tileSize / 2)) (newY * snd tileSize - (snd tileSize / 2)) $ Gloss.color Gloss.red (Gloss.ThickCircle 0 15) <> pic
+    where (x, y) = position movement
+          newX   = fromIntegral @Int (round x)
+          newY   = fromIntegral @Int (round y)
 
 renderLogo:: Gloss.Picture -> Gloss.Picture
 renderLogo pic = 
