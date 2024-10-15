@@ -1,7 +1,6 @@
 module Model.Maze where
 
 import qualified Data.Map as Map
-import GHC.Conc.Sync (newTVar)
 
 data CornerOrientation = SE | NW | NE | SW deriving (Show)
 
@@ -33,8 +32,8 @@ X  X
 XXXX
 -}
 -- BUG: The ordering of the printing might not be correct!
-testMaze :: Int -> Maze
-testMaze n = go 0 Map.empty
+buildTestMaze :: Int -> Maze
+buildTestMaze n = go 0 Map.empty
   where
     go x m
       | x >= n * n          = m -- base case
