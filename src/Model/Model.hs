@@ -19,6 +19,7 @@ data GameState = MkGameState
                   , enableDebug     :: Bool
                   , windowInfo      :: WindowInfo
                   , player          :: Player
+                  , player          :: Player
                   }
 
 initialState :: GameState
