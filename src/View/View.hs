@@ -11,7 +11,7 @@ import View.Transform ( transformPicture, gameArea )
 import qualified Data.Map as Map
 
 tileSize :: (Float, Float)
-tileSize = (32, 32)
+tileSize = (16, 16)
 
  -- picture pipeline, add functions with signature func:: Picture -> Picture
 render :: GameState -> IO Gloss.Picture
@@ -43,16 +43,24 @@ renderGameArea =
     x = fromIntegral $ fst gameArea
     y = fromIntegral $ snd gameArea 
 
-
--- foldrWithKey :: (k -> a -> b -> b) -> b -> Map k a -> b
 renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
-renderMaze MkGameState{maze=m} p = Map.foldrWithKey f Gloss.Blank m <> p
-  where f k v acc = renderTile k v <> acc
+renderMaze MkGameState{maze = m, mazeShape = (mX, mY)} p = 
+  Gloss.translate xOffset (-yOffset) $ Map.foldrWithKey f Gloss.Blank m <> p
+    where 
+      f k v acc = renderTile k v <> acc
+      winXOffset = fst gameArea `div` 2
+      mXOffset = (mX * round (fst tileSize)) `div` 2 
+      xOffset = fromIntegral $ winXOffset - mXOffset
+      winYOffset = snd gameArea `div` 2
+      mYOffset = (mY * round (snd tileSize)) `div` 2 
+      yOffset = fromIntegral $ winYOffset - mYOffset
 
 renderTile :: TilePosition -> Tile -> Gloss.Picture
 renderTile (x, y) (MkWall _) = 
-  renderSquare (fromIntegral x * fst tileSize, fromIntegral (-y) * snd tileSize) 
-  tileSize Gloss.white
+  renderSquare 
+    (fromIntegral x * fst tileSize, fromIntegral (-y) * snd tileSize) 
+    (fst tileSize - 1, snd tileSize - 1) -- gives a tiny bit of padding for walls
+    Gloss.white
 renderTile _     (MkFloor _) = Gloss.Blank
 
 -- (x, y) -> (width, height) -> Gloss.Picture

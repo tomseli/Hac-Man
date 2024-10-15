@@ -20,7 +20,7 @@ data Tile = MkFloor FloorType | MkWall WallShape deriving (Show)
 type TilePosition = (Int, Int)
 
 type Maze = Map.Map TilePosition Tile
-
+type MazeShape = (Int, Int)
 -- Constructs a text maze with x*x size
 -- does this function have redundant guards? yes
 -- am i going to make a function purely for testing pretty? no
