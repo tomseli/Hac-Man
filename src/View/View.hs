@@ -8,9 +8,23 @@ module View.View where
 import qualified Data.Map as Map
 import qualified Graphics.Gloss.Data.Color as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
-import Model.Entities
-import Model.Maze
-import Model.Model
+import Model.Entities (
+  Entity (MkEntity, movement),
+  Movement (position),
+  Player (MkPlayer, entity),
+ )
+import Model.Maze (Tile (..), TilePosition)
+import Model.Model (
+  GameState (
+    MkGameState,
+    elapsedTime,
+    enableDebug,
+    maze,
+    mazeShape,
+    player,
+    windowInfo
+  ),
+ )
 import View.Transform (gameArea, transformPicture)
 
 tileSize :: (Float, Float)

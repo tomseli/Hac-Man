@@ -2,11 +2,27 @@
 
 module Controller.Controller where
 
-import Controller.EntityController
+import Controller.EntityController (changeDirPlayer, moveStep)
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss -- Event, EventKey
-import Model.Entities
-import Model.Model
-import System.Exit
+import Model.Entities (
+  Direction (Down, Left, Right, Up),
+  Entity (movement),
+  Movement (speed),
+  Player (entity),
+ )
+import Model.Model (
+  GameState (
+    MkGameState,
+    elapsedTime,
+    enableDebug,
+    player,
+    status,
+    windowInfo
+  ),
+  GameStatus (Quitting),
+  WindowInfo (MkWindowInfo),
+ )
+import System.Exit (exitSuccess)
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
@@ -39,16 +55,20 @@ handleKeys (Gloss.EventKey key keyState _ _) state
       (Gloss.Char 'a') ->
         state{player = changeDirPlayer (player state) Model.Entities.Left}
       -- 'w' to turn player up
-      (Gloss.Char 'w') -> state{player = changeDirPlayer (player state) Model.Entities.Up}
+      (Gloss.Char 'w') ->
+        state{player = changeDirPlayer (player state) Model.Entities.Up}
       -- 's' to turn player Down
       (Gloss.Char 's') ->
         state{player = changeDirPlayer (player state) Model.Entities.Down}
       -- 's' to turn player Right
       (Gloss.Char 'd') ->
         state{player = changeDirPlayer (player state) Model.Entities.Right}
-      (Gloss.Char 'q') -> error ":("
+      -- 'q' purposely crashes the game
+      (Gloss.Char 'q') ->
+        error ":("
       -- o opens a debug overlay
-      (Gloss.Char 'o') -> toggleDebug state
+      (Gloss.Char 'o') ->
+        toggleDebug state
       _ -> state
 handleKeys _ state = state
 

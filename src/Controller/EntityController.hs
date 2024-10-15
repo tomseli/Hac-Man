@@ -4,6 +4,11 @@
 module Controller.EntityController where
 
 import Model.Entities
+    ( Player(..),
+      Entity(..),
+      Movement(MkMovement, position, direction, speed),
+      Direction(..),
+      IsAlive(Alive) )
 
 -- should add maze for collision detection?
 moveStep :: Entity -> Float -> Entity

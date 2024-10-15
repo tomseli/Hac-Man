@@ -1,7 +1,7 @@
 module Model.Model where
 
-import Controller.EntityController
-import Model.Entities
+import Controller.EntityController ( testPlayer )
+import Model.Entities ( Player )
 import Model.Maze (Maze, MazeShape, buildTestMaze)
 
 data GameStatus = Running | GameOver | Paused | Quitting
