@@ -1,31 +1,20 @@
 module Model.Model where 
-import Graphics.Gloss.Data.Picture ( Point )  
+
+import Model.Maze
+
+import qualified Graphics.Gloss.Data.Picture as Gloss
 
 data GameStatus = Running | GameOver | Paused | Quitting
 newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 
-data CornerOrientation = SE | NW | NE | SW
-data WallOrientation = Horizontal | Vertical
-
-data WallShape = MkCorner CornerOrientation
-               | MkWallShape WallOrientation
-
-data ConsumableType = Pellet | SuperPellet | Cherry
-
-data FloorType = MkConsumable ConsumableType | EmptyTile
-data Tile = MkFloor FloorType | MkWall WallShape
-
 data GameState = MkGameState 
                   { status          :: GameStatus
+                  , maze            :: Maze
                   , elapsedTime     :: Float
-                  , position        :: Point
+                  , position        :: Gloss.Point
                   , enableDebug     :: Bool
                   , windowInfo      :: WindowInfo
                   }
-
-type TilePosition = (Int , Int)
--- type Maze = Map TilePosition Tile
-
 
 initialState :: GameState
 initialState = MkGameState 
