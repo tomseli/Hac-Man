@@ -20,7 +20,9 @@ data Tile = MkFloor FloorType | MkWall WallShape deriving (Show)
 type TilePosition = (Int, Int)
 
 type Maze = Map.Map TilePosition Tile
+
 type MazeShape = (Int, Int)
+
 -- Constructs a text maze with x*x size
 -- does this function have redundant guards? yes
 -- am i going to make a function purely for testing pretty? no
@@ -34,17 +36,16 @@ XXXX
 -- BUG: The ordering of the printing might not be correct!
 buildTestMaze :: Int -> Maze
 buildTestMaze n = go 0 Map.empty
-  where
-    go x m
-      | x >= n * n          = m -- base case
-      | fst coord == 0     = go (x + 1) (Map.insert coord wallV m) 
-      | fst coord == n - 1 = go (x + 1) (Map.insert coord wallV m) 
-      | snd coord == 0     = go (x + 1) (Map.insert coord wallH m) 
-      | snd coord == n - 1 = go (x + 1) (Map.insert coord wallH m) 
-      | otherwise          = go (x + 1) (Map.insert coord empty m) 
-      where
-        coord = (x `mod` n, x `div` n)
-        wallH = MkWall (MkWallShape Horizontal)
-        wallV = MkWall (MkWallShape Vertical)
-        empty = MkFloor EmptyTile
-
+ where
+  go x m
+    | x >= n * n = m -- base case
+    | fst coord == 0 = go (x + 1) (Map.insert coord wallV m)
+    | fst coord == n - 1 = go (x + 1) (Map.insert coord wallV m)
+    | snd coord == 0 = go (x + 1) (Map.insert coord wallH m)
+    | snd coord == n - 1 = go (x + 1) (Map.insert coord wallH m)
+    | otherwise = go (x + 1) (Map.insert coord empty m)
+   where
+    coord = (x `mod` n, x `div` n)
+    wallH = MkWall (MkWallShape Horizontal)
+    wallV = MkWall (MkWallShape Vertical)
+    empty = MkFloor EmptyTile
