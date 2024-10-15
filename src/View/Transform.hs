@@ -10,7 +10,7 @@ gameArea = (820, 1024)
 -- centers the picture in the window
 -- scales the picture if window < gameArea
 transformPicture:: WindowInfo -> Picture -> Picture 
-transformPicture WindowInfo{resolution = (x, y)} pic = do
+transformPicture MkWindowInfo{resolution = (x, y)} pic = do
   -- find offset the picture to the top left 
   let xOffset = fst gameArea `div` 2
   let yOffset = snd gameArea `div` 2

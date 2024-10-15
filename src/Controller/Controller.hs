@@ -17,7 +17,7 @@ eventHandler :: Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state
 
 handleResize :: Event -> GameState -> GameState
-handleResize (EventResize (x, y)) state = state{windowInfo = WindowInfo (x, y)}
+handleResize (EventResize (x, y)) state = state{windowInfo = MkWindowInfo (x, y)}
 handleResize _ state = state
 
 handleKeys :: Event -> GameState -> GameState
@@ -34,10 +34,10 @@ handleKeys (EventKey key keyState _ _) state
 handleKeys _ state = state
 
 toggleDebug :: GameState -> GameState
-toggleDebug state@GameState{enableDebug} = state{enableDebug = not enableDebug}
+toggleDebug state@MkGameState{enableDebug} = state{enableDebug = not enableDebug}
 
 checkStatus :: GameState -> IO GameState
-checkStatus state@GameState{status} = 
+checkStatus state@MkGameState{status} = 
   case status of
     Quitting -> exitSuccess
     _        -> return state
