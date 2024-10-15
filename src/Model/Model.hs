@@ -19,7 +19,7 @@ data GameState = MkGameState
 initialState :: GameState
 initialState = MkGameState 
                 { status      = Running 
-                , maze        = buildTestMaze 4 -- create a 4x4 maze with only edges as walls
+                , maze        = buildTestMaze 6 -- create a 4x4 maze with only edges as walls
                 , elapsedTime = 0 
                 , position    = (0, 0) 
                 , enableDebug = True
