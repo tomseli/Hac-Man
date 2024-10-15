@@ -1,6 +1,6 @@
 module Model.Model where 
 
-import Model.Maze
+import Model.Maze ( Maze, testMaze )
 
 import qualified Graphics.Gloss.Data.Picture as Gloss
 
@@ -18,9 +18,10 @@ data GameState = MkGameState
 
 initialState :: GameState
 initialState = MkGameState 
-                { status           = Running 
-                , elapsedTime      = 0 
-                , position         = (0, 0) 
-                , enableDebug      = True
-                , windowInfo       = MkWindowInfo (0, 0)
+                { status      = Running 
+                , maze        = testMaze 4 -- create a 4x4 maze with only edges as walls
+                , elapsedTime = 0 
+                , position    = (0, 0) 
+                , enableDebug = True
+                , windowInfo  = MkWindowInfo (0, 0)
                 }
