@@ -66,9 +66,12 @@ executable Hac-Man
 
     -- Modules included in this executable, other than Main.
     other-modules:    Controller.Controller,
+                      Controller.EntityController,
                       View.View,
                       View.Transform,
-                      Model.Model
+                      Model.Model,
+                      Model.Entities
+
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

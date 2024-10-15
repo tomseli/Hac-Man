@@ -1,5 +1,8 @@
 module Model.Model where 
-import Graphics.Gloss.Data.Picture ( Point )  
+
+import qualified Data.Map as Map 
+import Model.Entities  
+import Controller.EntityController 
 
 data GameStatus = Running | GameOver | Paused | Quitting
 newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
@@ -18,20 +21,20 @@ data Tile = MkFloor FloorType | MkWall WallShape
 data GameState = MkGameState 
                   { status          :: GameStatus
                   , elapsedTime     :: Float
-                  , position        :: Point
                   , enableDebug     :: Bool
                   , windowInfo      :: WindowInfo
+                  , player          :: Player
                   }
 
 type TilePosition = (Int , Int)
--- type Maze = Map TilePosition Tile
+type Maze = Map.Map TilePosition Tile
 
 
 initialState :: GameState
 initialState = MkGameState 
                 { status           = Running 
                 , elapsedTime      = 0 
-                , position         = (0, 0) 
                 , enableDebug      = True
                 , windowInfo       = MkWindowInfo (0, 0)
+                , player           = testPlayer
                 }
