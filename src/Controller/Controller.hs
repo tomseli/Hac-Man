@@ -6,8 +6,6 @@ import Model.Model
 
 import Graphics.Gloss.Interface.IO.Game -- Event, EventKey
 import System.Exit
-import Data.Map (Map)
-import qualified Data.Map as Map
 
 
 step :: Float -> GameState -> IO GameState
