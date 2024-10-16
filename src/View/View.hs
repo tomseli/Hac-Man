@@ -13,7 +13,7 @@ import Model.Entities (
   Movement (position),
   Player (MkPlayer, entity),
  )
-import Model.Maze (Tile (..), TilePosition, Maze)
+import Model.Maze (Maze, Tile (..), TilePosition)
 import Model.Model (
   GameState (
     MkGameState,
@@ -24,11 +24,7 @@ import Model.Model (
     windowInfo
   ),
  )
-import View.Transform (gameArea, transformPicture)
-import Data.Maybe 
-
-tileSize :: (Float, Float)
-tileSize = (25, 25)
+import View.Transform (gameArea, tileSize, transformPicture, transformToMaze)
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
@@ -51,20 +47,22 @@ render
 -- Add a bitmap (Add, when making the renderEntity)
 -- note this is eta reduced to hell and back
 renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
-renderPlayer MkPlayer{entity} = renderEntity entity 
+renderPlayer MkPlayer{entity} = renderEntity entity
 
 renderEntity :: Entity -> Maze -> Gloss.Picture -> Gloss.Picture
 renderEntity MkEntity{movement} m pic =
   pic
-    <> Gloss.translate
-      (xSnap * fst tileSize + (fst tileSize / 2) + xOff)
-      (ySnap * snd tileSize - (snd tileSize / 2) - yOff)
-      (Gloss.color Gloss.red (Gloss.ThickCircle 0 15))
+    <> transformToMaze
+      m
+      ( Gloss.translate
+          (xSnap * fst tileSize + (fst tileSize / 2))
+          (ySnap * snd tileSize - (snd tileSize / 2))
+          (Gloss.color Gloss.red (Gloss.ThickCircle 0 15))
+      )
  where
   (x, y) = position movement
   xSnap = fromIntegral @Int (round x)
   ySnap = fromIntegral @Int (round y)
-  (xOff, yOff) = calculateMazeOffset m
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =
@@ -95,24 +93,9 @@ renderGameArea =
 
 renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
 renderMaze MkGameState{maze = m} p =
-  p <> Gloss.translate xOffset (-yOffset) (Map.foldrWithKey f Gloss.Blank m)
+  p <> transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
  where
   f k v acc = renderTile k v <> acc
-  (xOffset, yOffset) = calculateMazeOffset m
-
-calculateMazeOffset :: Maze -> (Float, Float)
-calculateMazeOffset maze = (xOffset, yOffset)
- where
-  -- assumption: maze is not empty
-  -- assumption: the maximum key is the same as the shape of the maze - 1
-  ((mazeX, mazeY), _) = fromJust $ Map.lookupMax maze
-  (mX, mY) = (mazeX + 1 , mazeY + 1)
-  winXOffset = fst gameArea `div` 2
-  winYOffset = snd gameArea `div` 2
-  mXOffset = (mX * round (fst tileSize)) `div` 2
-  mYOffset = (mY * round (snd tileSize)) `div` 2
-  xOffset = fromIntegral $ winXOffset - mXOffset
-  yOffset = fromIntegral $ winYOffset - mYOffset
 
 renderTile :: TilePosition -> Tile -> Gloss.Picture
 renderTile (x, y) (MkWall _) =
