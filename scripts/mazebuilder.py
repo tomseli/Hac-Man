@@ -54,16 +54,16 @@ ls = ls[:-1] # Remove the last comma
 ls += "]" # Close the list
 
 ## Get the out name from args
-output_name = "Out.hs" if args.output is None else args.output
+output_path = "Out.hs" if args.output is None else args.output
 
 ## Regex hell to remove everything but the filename as module name
-module_name = re.search(r"[^\\/]+(?=\.\w+$)", output_name)[0]
+module_name = re.search(r"[^\\/]+(?=\.\w+$)", output_path)[0]
 
 ## Get the function name from args
 func_name = "customMaze" if args.function is None else args.function
 
 ## Open (and create) a file and write some Haskell to it 
-with open(output_name, 'w+') as file:
+with open(output_path, 'w+') as file:
     file.write(f"""module {module_name} where
 
 import qualified Data.Map as Map
