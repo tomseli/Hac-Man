@@ -68,12 +68,11 @@ renderEntity MkEntity{movement} bmap m pic =
     Up -> (fromIntegral @Int (round x), y)
     Down -> (fromIntegral @Int (round x), y)
     _ -> (x, y)
-
   (x, y) = position movement
 
-renderNextPos :: Entity -> Gloss.Picture
-renderNextPos ent =
-  Gloss.translate x' y' $
+renderNextPos :: Entity -> Maze -> Gloss.Picture
+renderNextPos ent maze =
+  transformToMaze maze $ Gloss.translate x' y' $
     Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
  where
   (x, y) = getNextPos ent
@@ -87,10 +86,10 @@ renderLogo pic =
       (Gloss.color Gloss.yellow (Gloss.text "PACMAN"))
 
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
-renderDebugInfo state@MkGameState{enableDebug = debug} pic
+renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze} pic
   | debug =
       pic
-        <> renderNextPos ((entity . player) state)
+        <> renderNextPos ((entity . player) state) maze
         <> renderGameArea
         <> renderDebugTimer state
   | otherwise = Gloss.Blank <> pic
