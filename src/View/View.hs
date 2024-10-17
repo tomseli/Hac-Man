@@ -7,6 +7,8 @@ module View.View where
 
 
 import Prelude hiding (Right, Left, Up, Down)
+
+import Prelude hiding (Right, Left, Up, Down)
 import qualified Data.Map as Map
 import qualified Graphics.Gloss.Data.Color as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
@@ -76,6 +78,22 @@ renderNextPos ent =
   $ Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
   where  (x, y)     = getNextPos ent
          (x', y')   = ((x * fst tileSize) +(fst tileSize /2) ,(y * snd tileSize) - (snd tileSize /2))
+  dir          = direction movement 
+  (x1, y1)     = case dir of
+                  Right -> (x, fromIntegral @Int (round y))
+                  Left  -> (x, fromIntegral @Int (round y))
+                  Up    -> (fromIntegral @Int (round x), y)
+                  Down  -> (fromIntegral @Int (round x), y)
+                  _ -> (x, y) 
+
+  (x, y)       = position movement
+
+renderNextPos ::  Entity -> Gloss.Picture
+renderNextPos ent =
+  Gloss.translate x' y'
+  $ Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
+  where  (x, y)     = getNextPos ent
+         (x', y')   = ((x * fst tileSize) +(fst tileSize /2) ,(y * snd tileSize) - (snd tileSize /2))
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =
@@ -85,6 +103,8 @@ renderLogo pic =
 
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
 renderDebugInfo state@MkGameState{enableDebug = debug} pic
+  | debug     = pic <> renderNextPos ((entity.player) state) <> renderGameArea <> 
+                renderDebugTimer state 
   | debug     = pic <> renderNextPos ((entity.player) state) <> renderGameArea <> 
                 renderDebugTimer state 
   | otherwise = Gloss.Blank <> pic
