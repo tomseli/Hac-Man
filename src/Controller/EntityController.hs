@@ -13,9 +13,9 @@ moveStep :: Entity -> Float -> Entity
 moveStep ent@MkEntity{movement} stepx =
   case direction movement of
     Model.Entities.Right -> ent{movement = movement{position = (x + stepx, y)}}
-    Model.Entities.Left -> ent{movement = movement{position = (x - stepx, y)}}
-    Model.Entities.Up -> ent{movement = movement{position = (x, y + stepx)}}
-    Model.Entities.Down -> ent{movement = movement{position = (x, y - stepx)}}
+    Model.Entities.Left  -> ent{movement = movement{position = (x - stepx, y)}}
+    Model.Entities.Up    -> ent{movement = movement{position = (x, y + stepx)}}
+    Model.Entities.Down  -> ent{movement = movement{position = (x, y - stepx)}}
     Model.Entities.Still -> ent
  where
   (x, y) = position movement
@@ -26,7 +26,7 @@ checkEntCollision ent maze =
     Nothing   -> Nothing
     Just tile -> actOnCollision ent tile
     where
-      (x, y) = (position.movement) ent
+      (x, y) = getNextPos ent
       tilePos :: TilePosition
       tilePos = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
@@ -43,12 +43,28 @@ changeDirPlayer player direction = player{entity = updateDirection}
  where
   updateDirection = changeDirEnt (entity player) direction
 
+snapToGrid :: EntityPosition -> EntityPosition
+snapToGrid (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round y))
+
+getNextPos ::  Entity -> EntityPosition
+getNextPos ent = (a, b)
+                        where
+                          (a,b)       = snapToGrid (x', y')
+                          dir        = (direction.movement) ent
+                          (x , y)    = (position .movement) ent
+                          (x', y')   = nPos dir
+                          nPos Model.Entities.Up    = (x  ,y+0.4)
+                          nPos Model.Entities.Left  = (x-0.4,  y)
+                          nPos Model.Entities.Right = (x+0.4,  y)
+                          nPos Model.Entities.Down  = (x  ,y-0.4)
+                          nPos _                    = (x  , y)
+
 
 testEntity :: Entity
 testEntity =
   MkEntity
     { movement =
-        MkMovement{direction = Model.Entities.Still, speed = 1, position = (1, -1)}
+        MkMovement{direction = Model.Entities.Still, speed = 14, position = (1, -1)}
     , alive = Alive
     }
 
