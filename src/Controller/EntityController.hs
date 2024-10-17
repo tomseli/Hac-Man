@@ -12,13 +12,18 @@ import qualified Data.Map as Map
 moveStep :: Entity -> Float -> Entity
 moveStep ent@MkEntity{movement} stepx =
   case direction movement of
-    Model.Entities.Right -> ent{movement = movement{position = (x + stepx, y)}}
-    Model.Entities.Left  -> ent{movement = movement{position = (x - stepx, y)}}
-    Model.Entities.Up    -> ent{movement = movement{position = (x, y + stepx)}}
-    Model.Entities.Down  -> ent{movement = movement{position = (x, y - stepx)}}
+    Model.Entities.Right -> ent{movement = movement{position =  (x + stepx, y)}}
+    Model.Entities.Left  -> ent{movement = movement{position =  (x - stepx, y)}}
+    Model.Entities.Up    -> ent{movement = movement{position =  (x, y + stepx)}}
+    Model.Entities.Down  -> ent{movement = movement{position =  (x, y - stepx)}}
     Model.Entities.Still -> ent
  where
   (x, y) = position movement
+
+
+
+interpolateRender :: Float -> Float -> Float
+interpolateRender x1 x2 = x1 - x2
 
 checkEntCollision :: Entity -> Maze -> Maybe Entity
 checkEntCollision ent maze = 
@@ -64,7 +69,7 @@ testEntity :: Entity
 testEntity =
   MkEntity
     { movement =
-        MkMovement{direction = Model.Entities.Still, speed = 14, position = (1, -1)}
+        MkMovement{direction = Model.Entities.Still, speed = 11, position = (1, -1)}
     , alive = Alive
     }
 
