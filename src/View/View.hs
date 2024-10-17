@@ -5,22 +5,16 @@
 
 module View.View where
 
-
-import Prelude hiding (Right, Left, Up, Down)
-
-import Prelude hiding (Right, Left, Up, Down)
+import Controller.EntityController
 import qualified Data.Map as Map
 import qualified Graphics.Gloss.Data.Color as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
-
-import Controller.EntityController
-import Model.Entities
-    ( Direction(Down, Up, Left, Right),
-      Entity(MkEntity, movement),
-      EntityPosition,
-      Movement(position, direction),
-      Player(MkPlayer, entity) )
-
+import Model.Entities (
+  Direction (Down, Left, Right, Up),
+  Entity (MkEntity, movement),
+  Movement (direction, position),
+  Player (MkPlayer, entity),
+ )
 import Model.Maze (Maze, Tile (..), TilePosition)
 import Model.Model (
   GameState (
@@ -33,67 +27,58 @@ import Model.Model (
   ),
  )
 import View.Transform (gameArea, tileSize, transformPicture, transformToMaze)
+import Prelude hiding (Left, Right)
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
 render :: GameState -> IO Gloss.Picture
-render state@MkGameState{windowInfo = wInfo, player = wPlayer} = do
+render state@MkGameState{windowInfo = wInfo, player = player, maze=maze} = do
   return $
     transformPicture wInfo $
       ( renderDebugInfo state
           . renderLogo
           . renderMaze state
-          . renderPlayer wPlayer
-          . renderNextPos (entity wPlayer)
+          . renderPlayer player maze
       )
-          Gloss.Blank
+        Gloss.Blank
 
 -- Add a bitmap (Add, when making the renderEntity)
 -- note this is eta reduced to hell and back
 renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
-renderPlayer MkPlayer{entity} = renderEntity entity
+renderPlayer MkPlayer{entity} = renderEntity entity circle
+ where
+  circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 16)
 
-renderEntity :: Entity -> Maze -> Gloss.Picture -> Gloss.Picture -> Gloss.Picture
-renderEntity MkEntity{movement} m pic bmap =
-  pic <> transformToMaze m
+renderEntity ::
+  Entity -> Gloss.Picture -> Maze -> Gloss.Picture -> Gloss.Picture
+renderEntity MkEntity{movement} bmap m pic =
+  pic
+    <> transformToMaze
+      m
       ( Gloss.translate
-          ((x1 * fst tileSize) + (fst tileSize /2))
-          ((y1 * snd tileSize) - (snd tileSize /2))
+          ((x1 * fst tileSize) + (fst tileSize / 2))
+          ((y1 * snd tileSize) - (snd tileSize / 2))
           bmap
       )
  where
-  dir          = direction movement 
-  (x1, y1)     = case dir of
-                  Right -> (x, fromIntegral @Int (round y))
-                  Left  -> (x, fromIntegral @Int (round y))
-                  Up    -> (fromIntegral @Int (round x), y)
-                  Down  -> (fromIntegral @Int (round x), y)
-                  _ -> (x, y) 
+  dir = direction movement
+  (x1, y1) = case dir of
+    Right -> (x, fromIntegral @Int (round y))
+    Left -> (x, fromIntegral @Int (round y))
+    Up -> (fromIntegral @Int (round x), y)
+    Down -> (fromIntegral @Int (round x), y)
+    _ -> (x, y)
 
-  (x, y)       = position movement
+  (x, y) = position movement
 
-renderNextPos ::  Entity -> Gloss.Picture
+renderNextPos :: Entity -> Gloss.Picture
 renderNextPos ent =
-  Gloss.translate x' y'
-  $ Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
-  where  (x, y)     = getNextPos ent
-         (x', y')   = ((x * fst tileSize) +(fst tileSize /2) ,(y * snd tileSize) - (snd tileSize /2))
-  dir          = direction movement 
-  (x1, y1)     = case dir of
-                  Right -> (x, fromIntegral @Int (round y))
-                  Left  -> (x, fromIntegral @Int (round y))
-                  Up    -> (fromIntegral @Int (round x), y)
-                  Down  -> (fromIntegral @Int (round x), y)
-                  _ -> (x, y) 
-
-  (x, y)       = position movement
-
-renderNextPos ::  Entity -> Gloss.Picture
-renderNextPos ent =
-  Gloss.translate x' y'
-  $ Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
-  where  (x, y)     = getNextPos ent
-         (x', y')   = ((x * fst tileSize) +(fst tileSize /2) ,(y * snd tileSize) - (snd tileSize /2))
+  Gloss.translate x' y' $
+    Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
+ where
+  (x, y) = getNextPos ent
+  (x', y') =
+    ((x * fst tileSize) + (fst tileSize / 2), (y * snd tileSize) - (snd tileSize / 2))
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =
@@ -103,10 +88,11 @@ renderLogo pic =
 
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
 renderDebugInfo state@MkGameState{enableDebug = debug} pic
-  | debug     = pic <> renderNextPos ((entity.player) state) <> renderGameArea <> 
-                renderDebugTimer state 
-  | debug     = pic <> renderNextPos ((entity.player) state) <> renderGameArea <> 
-                renderDebugTimer state 
+  | debug =
+      pic
+        <> renderNextPos ((entity . player) state)
+        <> renderGameArea
+        <> renderDebugTimer state
   | otherwise = Gloss.Blank <> pic
 
 renderDebugTimer :: GameState -> Gloss.Picture
