@@ -18,7 +18,7 @@ main = do
   playIO
     window
     black
-    30
+    60
     initialState
     render
     eventHandler
