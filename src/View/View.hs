@@ -8,11 +8,13 @@ module View.View where
 import qualified Data.Map as Map
 import qualified Graphics.Gloss.Data.Color as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
-import Model.Entities (
-  Entity (MkEntity, movement),
-  Movement (position),
-  Player (MkPlayer, entity),
- )
+import Model.Entities
+    ( Direction(Down, Up, Left, Right),
+      Entity(MkEntity, movement),
+      EntityPosition,
+      Movement(position, direction),
+      Player(MkPlayer, entity) )
+
 import Model.Maze (Tile (..), TilePosition)
 import Model.Model (
   GameState (
@@ -28,7 +30,7 @@ import Model.Model (
 import View.Transform (gameArea, transformPicture)
 
 tileSize :: (Float, Float)
-tileSize = (25, 25)
+tileSize = (16, 16)
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 render :: GameState -> IO Gloss.Picture
@@ -39,6 +41,7 @@ render state@MkGameState{windowInfo = wInfo, player = wPlayer} = do
           . renderLogo
           . renderMaze state
           . renderPlayer wPlayer
+          . renderNextPos (entity wPlayer)
       )
         Gloss.Blank
 
@@ -49,13 +52,37 @@ renderPlayer MkPlayer{entity} = renderEntity entity
 renderEntity :: Entity -> Gloss.Picture -> Gloss.Picture
 renderEntity MkEntity{movement} pic =
   Gloss.translate
-    (newX * fst tileSize + (fst tileSize / 2))
-    (newY * snd tileSize - (snd tileSize / 2))
+    ((a * fst tileSize) + (fst tileSize /2))
+    ((b * snd tileSize) - (snd tileSize /2))
     $ Gloss.color Gloss.red (Gloss.ThickCircle 0 15) <> pic
  where
-  (x, y) = position movement
-  newX = fromIntegral @Int (round x)
-  newY = fromIntegral @Int (round y)
+  (x, y)       = position movement
+  (newX, newY) =  (x, y)
+  (a, b)       = snapToGrid(newX, newY)
+
+interpolateRender :: Float -> Float -> Float
+interpolateRender x1 x2 =   0.5 * (x1 - x2)
+
+snapToGrid :: EntityPosition -> EntityPosition
+snapToGrid (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round y))
+
+renderNextPos ::  Entity -> Gloss.Picture -> Gloss.Picture
+renderNextPos ent pic =
+  Gloss.translate x' y'
+  $ Gloss.color Gloss.blue (Gloss.ThickCircle 0 15) <> pic
+  where  (x', y')     = getNextPosRenderer ent
+
+getNextPosRenderer ::  Entity -> EntityPosition
+getNextPosRenderer ent = ((x-x' )* fst tileSize  , (y-y') * snd tileSize  )
+                        where
+                          dir        = (direction.movement) ent
+                          (x , y)    = snapToGrid ((position .movement) ent)
+                          (x', y')   = nPos dir
+                          nPos Model.Entities.Up    = (x  ,y-1)
+                          nPos Model.Entities.Left  = (x+1,  y)
+                          nPos Model.Entities.Right = (x-1,  y)
+                          nPos Model.Entities.Down  = (x  ,y+1)
+                          nPos _                    = (x  , y)
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =

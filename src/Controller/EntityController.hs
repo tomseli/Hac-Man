@@ -1,14 +1,12 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Controller.EntityController where
 
 import Model.Entities
-    ( Player(..),
-      Entity(..),
-      Movement(MkMovement, position, direction, speed),
-      Direction(..),
-      IsAlive(Alive) )
+import Model.Maze
+import qualified Data.Map as Map
 
 -- should add maze for collision detection?
 moveStep :: Entity -> Float -> Entity
@@ -22,6 +20,21 @@ moveStep ent@MkEntity{movement} stepx =
  where
   (x, y) = position movement
 
+checkEntCollision :: Entity -> Maze -> Maybe Entity
+checkEntCollision ent maze = 
+  case Map.lookup tilePos maze of
+    Nothing   -> Nothing
+    Just tile -> actOnCollision ent tile
+    where
+      (x, y) = (position.movement) ent
+      tilePos :: TilePosition
+      tilePos = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
+
+actOnCollision :: Entity -> Tile -> Maybe Entity
+actOnCollision _ (MkFloor EmptyTile)        = Nothing
+actOnCollision _   (MkFloor (MkConsumable _)) = undefined
+actOnCollision ent (MkWall _)                 = Just $ changeDirEnt ent Still
+
 changeDirEnt :: Entity -> Direction -> Entity
 changeDirEnt ent dir = ent{movement = (movement ent){direction = dir}}
 
@@ -30,14 +43,12 @@ changeDirPlayer player direction = player{entity = updateDirection}
  where
   updateDirection = changeDirEnt (entity player) direction
 
-collisionBorder :: Entity -> Entity
-collisionBorder = undefined
 
 testEntity :: Entity
 testEntity =
   MkEntity
     { movement =
-        MkMovement{direction = Model.Entities.Still, speed = 1, position = (0, 0)}
+        MkMovement{direction = Model.Entities.Still, speed = 1, position = (1, -1)}
     , alive = Alive
     }
 
