@@ -1,4 +1,4 @@
-module Out where
+module Out.Out where
 
 import qualified Data.Map as Map
                

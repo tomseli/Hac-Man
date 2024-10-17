@@ -19,6 +19,9 @@ parser.add_argument(
     '--output', '-o', help="change the default output location/name (default: Out.hs)"
 )
 parser.add_argument(
+    '--module', '-m', help="custom module name (default: derived from filename)"
+)
+parser.add_argument(
     '--function', '-f', help="custom function name to use in the output (default: customMaze)"
 )   
 args = parser.parse_args()
@@ -57,7 +60,10 @@ ls += "]" # Close the list
 output_path = "Out.hs" if args.output is None else args.output
 
 ## Regex hell to remove everything but the filename as module name
-module_name = re.search(r"[^\\/]+(?=\.\w+$)", output_path)[0]
+if args.module is None:
+    module_name = re.search(r"[^\\/]+(?=\.\w+$)", output_path)[0]  
+else:
+    module_name = args.module
 
 ## Get the function name from args
 func_name = "customMaze" if args.function is None else args.function
