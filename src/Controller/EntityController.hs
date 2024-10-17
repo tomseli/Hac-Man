@@ -69,7 +69,7 @@ testEntity :: Entity
 testEntity =
   MkEntity
     { movement =
-        MkMovement{direction = Model.Entities.Still, speed = 11, position = (1, -1)}
+        MkMovement{direction = Model.Entities.Still, speed = 8, position = (1, -1)}
     , alive = Alive
     }
 
