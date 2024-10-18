@@ -3,7 +3,7 @@
 module Controller.Controller where
 
 import Controller.EntityController
-    ( moveStep, checkEntCollision, changeDirPlayer )
+    ( changeDirPlayer, moveWithCollision )
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss -- Event, EventKey
 import Model.Entities
     ( Direction(Right, Left, Up, Down),
@@ -26,12 +26,10 @@ step dt state = do
 
 
 updatePlayer :: Float -> GameState -> Player
-updatePlayer dt state =     (player state)
-      {  entity = let moveEntity = moveStep ((entity . player) state) ((speed . movement . entity . player) state * dt) in
-                  case checkEntCollision moveEntity (maze state) of
-                      Nothing        -> moveEntity
-                      Just _         -> (entity . player) state
-      }
+updatePlayer dt state = (player state)
+  { 
+    entity = moveWithCollision (entity (player state)) ((speed . movement . entity . player) state * dt) (maze state)
+  }
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state

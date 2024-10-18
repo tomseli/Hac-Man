@@ -10,6 +10,7 @@ data Movement = MkMovement
   { direction :: Direction
   , speed :: Float
   , position :: EntityPosition
+  , heading  :: Direction
   }
 
 data BehaviourMode = Chase | Scatter | Frightened | Home
