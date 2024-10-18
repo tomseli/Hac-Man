@@ -72,7 +72,8 @@ executable Hac-Man
                       View.Transform,
                       Model.Model,
                       Model.Entities,
-                      Model.Maze
+                      Model.Maze,
+                      Model.CustomMaze
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
