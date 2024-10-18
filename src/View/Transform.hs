@@ -3,8 +3,8 @@ module View.Transform where
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Graphics.Gloss.Data.Picture as Gloss
-import Model.Maze (Maze)
-import Model.Model (WindowInfo (..))
+import Model.Maze
+import Model.Model
 
 gameArea :: (Int, Int)
 gameArea = (820, 1024)
@@ -37,11 +37,11 @@ transformToMaze m = Gloss.translate x (-y)
   (x, y) = calculateMazeOffset m
 
 calculateMazeOffset :: Maze -> (Float, Float)
-calculateMazeOffset maze = (xOffset, yOffset)
+calculateMazeOffset m = (xOffset, yOffset)
  where
   -- assumption: maze is not empty
   -- assumption: the maximum key is the same as the shape of the maze - 1
-  ((mazeX, mazeY), _) = fromJust $ Map.lookupMax maze
+  ((mazeX, mazeY), _) = fromJust $ Map.lookupMax m
   (mX, mY) = (mazeX + 1, mazeY + 1)
   winXOffset = fst gameArea `div` 2
   winYOffset = snd gameArea `div` 2

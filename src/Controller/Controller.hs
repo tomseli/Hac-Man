@@ -3,33 +3,25 @@
 module Controller.Controller where
 
 import Controller.EntityController
-    ( changeDirPlayer, moveWithCollision )
-import qualified Graphics.Gloss.Interface.IO.Game as Gloss -- Event, EventKey
+import qualified Graphics.Gloss.Interface.IO.Game as Gloss
 import Model.Entities
-    ( Direction(Right, Left, Up, Down),
-      Entity(movement),
-      Movement(speed),
-      Player(entity) )
-
 import Model.Model
-    ( GameState(MkGameState, status, maze, elapsedTime, windowInfo,
-                player, enableDebug),
-      GameStatus(Quitting),
-      WindowInfo(MkWindowInfo) )
-import System.Exit (exitSuccess)
+import System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  -- this should always be the last in the pipeline
-  checkStatus
-    state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state}
-
+  let newState = state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state}
+  checkStatus newState -- checkstate should be last in the pipeline
 
 updatePlayer :: Float -> GameState -> Player
-updatePlayer dt state = (player state)
-  { 
-    entity = moveWithCollision (entity (player state)) ((speed . movement . entity . player) state * dt) (maze state)
-  }
+updatePlayer dt state =
+  (player state)
+    { entity =
+        moveWithCollision
+          (entity (player state))
+          ((speed . movement . entity . player) state * dt)
+          (maze state)
+    }
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state
