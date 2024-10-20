@@ -186,7 +186,7 @@ def main():
                         tile = f"{floor} (MkConsumable SuperPellet)"
             else:
                 options.print_error("Failed to match output to tile")
-            s = f"(({idy}, {idx}), {tile})"
+            s = f"(({idx}, {idy}), {tile})"
             output_data.append(s)
     pretty_data = "\n    [ " + output_data[0] + "\n"
     for data in output_data[1:]:
