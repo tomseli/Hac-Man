@@ -22,28 +22,26 @@ moveStep ent@MkEntity{movement} stepx =
 
 -- implementation of tunneling prevention
 moveWithCollision :: Entity -> Float -> Maze -> Entity
-moveWithCollision ent totalMovement maze = helperFunction ent steps
+moveWithCollision ent totalMovement maze = helperFunction updatedEnt steps
  where
-  stepSize = 0.01
+  stepSize = 0.1 -- around 100 collision checks
   steps = floor (totalMovement / stepSize) :: Int -- number of steps to check in between large step
-  helperFunction entity 0 = entity -- basecase
+  updatedEnt = checkValidHeading ent maze
+  helperFunction entity 0 = entity -- base case
   helperFunction entity n =
     -- recursive helper function
     let moveEntity = moveStep entity stepSize -- move a small step
-     in case checkEntCollision moveEntity maze of -- if no collision do one more step, if collision return x
+     in case checkEntCollision moveEntity 0.5 maze of -- if no collision do one more step, if collision return entity
           Nothing -> helperFunction moveEntity (n - 1)
           Just x -> x
 
-interpolateRender :: Float -> Float -> Float
-interpolateRender x1 x2 = x1 - x2
-
-checkEntCollision :: Entity -> Maze -> Maybe Entity
-checkEntCollision ent maze =
+checkEntCollision :: Entity -> Float -> Maze -> Maybe Entity
+checkEntCollision ent ran maze =
   case Map.lookup tilePos maze of
     Nothing -> Nothing
     Just tile -> actOnCollision ent tile
  where
-  (x, y) = getNextPos ent -- (position.movement) ent
+  (x, y) = getNextPos ent ran
   tilePos :: TilePosition
   tilePos = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
@@ -65,8 +63,13 @@ changeDirEnt ent dir = ent{movement = (movement ent){direction = dir}}
 changeHeadingEnt :: Entity -> Direction -> Entity
 changeHeadingEnt ent heading = ent{movement = (movement ent){heading = heading}}
 
-checkValidHeading :: Entity -> Entity
-checkValidHeading = undefined
+checkValidHeading :: Entity -> Maze -> Entity
+checkValidHeading ent maze =
+  let headingDir = (heading . movement) ent
+      entity = changeDirEnt ent headingDir
+   in case checkEntCollision entity 1 maze of
+        Nothing -> changeDirEnt ent headingDir
+        Just _ -> ent
 
 -- if getNextPos is collision, keep direction make direction the one you want
 
@@ -75,20 +78,24 @@ changeDirPlayer player direction = player{entity = updateDirection}
  where
   updateDirection = changeDirEnt (entity player) direction
 
+changeHeadPlayer :: Player -> Direction -> Player
+changeHeadPlayer player direction = player{entity = updateHeading}
+ where
+  updateHeading = changeHeadingEnt (entity player) direction
+
 snapToGrid :: EntityPosition -> EntityPosition
 snapToGrid (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round y))
 
-getNextPos :: Entity -> EntityPosition
-getNextPos ent = (a, b)
+getNextPos :: Entity -> Float -> EntityPosition
+getNextPos ent ran = (x', y')
  where
-  (a, b) = snapToGrid (x', y')
   dir = (direction . movement) ent
   (x, y) = (position . movement) ent
   (x', y') = nPos dir
-  nPos Model.Entities.Up = (x, y + 0.4)
-  nPos Model.Entities.Left = (x - 0.4, y)
-  nPos Model.Entities.Right = (x + 0.4, y)
-  nPos Model.Entities.Down = (x, y - 0.4)
+  nPos Model.Entities.Up = (fromIntegral @Int (round x), y + ran)
+  nPos Model.Entities.Left = (x - ran, fromIntegral @Int (round y))
+  nPos Model.Entities.Right = (x + ran, fromIntegral @Int (round y))
+  nPos Model.Entities.Down = (fromIntegral @Int (round x), y - ran)
   nPos _ = (x, y)
 
 testEntity :: Entity

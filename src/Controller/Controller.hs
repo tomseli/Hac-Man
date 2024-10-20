@@ -38,16 +38,16 @@ handleKeys (Gloss.EventKey key keyState _ _) state
       (Gloss.SpecialKey Gloss.KeyEsc) -> state{status = Quitting}
       -- 'a' to turn player left
       (Gloss.Char 'a') ->
-        state{player = changeDirPlayer (player state) Model.Entities.Left}
+        state{player = changeHeadPlayer (player state) Model.Entities.Left}
       -- 'w' to turn player up
       (Gloss.Char 'w') ->
-        state{player = changeDirPlayer (player state) Model.Entities.Up}
+        state{player = changeHeadPlayer (player state) Model.Entities.Up}
       -- 's' to turn player Down
       (Gloss.Char 's') ->
-        state{player = changeDirPlayer (player state) Model.Entities.Down}
+        state{player = changeHeadPlayer (player state) Model.Entities.Down}
       -- 's' to turn player Right
       (Gloss.Char 'd') ->
-        state{player = changeDirPlayer (player state) Model.Entities.Right}
+        state{player = changeHeadPlayer (player state) Model.Entities.Right}
       -- 'q' purposely crashes the game
       (Gloss.Char 'q') ->
         error ":("
