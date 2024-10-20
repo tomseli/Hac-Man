@@ -187,7 +187,6 @@ def main():
             else:
                 options.print_error("Failed to match output to tile")
             s = f"(({idy}, {idx}), {tile})"
-            print(s)
             output_data.append(s)
     pretty_data = "\n    [ " + output_data[0] + "\n"
     for data in output_data[1:]:
