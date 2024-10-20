@@ -15,7 +15,7 @@ import Model.Entities (
   Movement (direction, position),
   Player (MkPlayer, entity),
  )
-import Model.Maze (Maze, Tile (..), TilePosition)
+import Model.Maze
 import Model.Model (
   GameState (
     MkGameState,
@@ -26,21 +26,23 @@ import Model.Model (
     windowInfo
   ),
  )
+import View.RenderMaze
 import View.Transform (gameArea, tileSize, transformPicture, transformToMaze)
 import Prelude hiding (Left, Right)
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
 render :: GameState -> IO Gloss.Picture
-render state@MkGameState{windowInfo = wInfo, player = player, maze=maze} = do
-  return $
-    transformPicture wInfo $
-      ( renderDebugInfo state
-          . renderLogo
-          . renderMaze state
-          . renderPlayer player maze
-      )
-        Gloss.Blank
+render state@MkGameState{windowInfo = wInfo, player = player, maze = maze} = do
+  mazePic <- renderMaze maze (return Gloss.Blank)
+  let purePicture =
+        ( renderDebugInfo state
+            . renderLogo
+            -- . renderMaze state
+            . renderPlayer player maze
+        )
+          Gloss.Blank
+  return (transformPicture wInfo $ mazePic <> purePicture)
 
 -- Add a bitmap (Add, when making the renderEntity)
 -- note this is eta reduced to hell and back
@@ -72,12 +74,15 @@ renderEntity MkEntity{movement} bmap m pic =
 
 renderNextPos :: Entity -> Maze -> Gloss.Picture
 renderNextPos ent maze =
-  transformToMaze maze $ Gloss.translate x' y' $
-    Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
+  transformToMaze maze $
+    Gloss.translate x' y' $
+      Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
  where
   (x, y) = getNextPos ent
   (x', y') =
-    ((x * fst tileSize) + (fst tileSize / 2), (y * snd tileSize) - (snd tileSize / 2))
+    ( (x * fst tileSize) + (fst tileSize / 2)
+    , (y * snd tileSize) - (snd tileSize / 2)
+    )
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =
@@ -110,19 +115,19 @@ renderGameArea =
   x = fromIntegral $ fst gameArea
   y = fromIntegral $ snd gameArea
 
-renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
-renderMaze MkGameState{maze = m} p =
-  p <> transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
- where
-  f k v acc = renderTile k v <> acc
+-- renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
+-- renderMaze MkGameState{maze = m} p =
+--   p <> transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
+--  where
+--   f k v acc = renderTile k v <> acc
 
-renderTile :: TilePosition -> Tile -> Gloss.Picture
-renderTile (x, y) (MkWall _) =
-  renderSquare
-    (fromIntegral x * fst tileSize, fromIntegral (-y) * snd tileSize)
-    (fst tileSize - 1, snd tileSize - 1) -- gives a tiny bit of padding for walls
-    Gloss.white
-renderTile _ (MkFloor _) = Gloss.Blank
+-- renderTile :: TilePosition -> Tile -> Gloss.Picture
+-- renderTile (x, y) (MkWall _) =
+--   renderSquare
+--     (fromIntegral x * fst tileSize, fromIntegral (-y) * snd tileSize)
+--     (fst tileSize - 1, snd tileSize - 1) -- gives a tiny bit of padding for walls
+--     Gloss.white
+-- renderTile _ (MkFloor _) = Gloss.Blank
 
 -- (x, y) -> (width, height) -> Gloss.Picture
 renderSquare :: (Float, Float) -> (Float, Float) -> Gloss.Color -> Gloss.Picture

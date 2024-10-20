@@ -70,6 +70,7 @@ executable Hac-Man
                       Controller.EntityController,
                       View.View,
                       View.Transform,
+                      View.RenderMaze,
                       Model.Model,
                       Model.Entities,
                       Model.Maze,
