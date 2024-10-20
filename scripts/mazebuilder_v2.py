@@ -159,11 +159,12 @@ def main():
         for idx, col in enumerate(row):
             wall = "MkWall"
             floor = "MkFloor"
+            tile = ""
             if type(col) == TileWall:
                 match col.value:
                     case TileWall.VERTICAL.value:
                         tile = f"{wall} (MkWallShape Vertical)"
-                    case TileWall.VERTICAL.value:
+                    case TileWall.HORIZONTAL.value:
                         tile = f"{wall} (MkWallShape Horizontal)"
             elif type(col) == TileCorner:
                 match col.value:
@@ -183,10 +184,11 @@ def main():
                         tile = f"{floor} (MkConsumable Pellet)"
                     case TileOther.SUPER.value:
                         tile = f"{floor} (MkConsumable SuperPellet)"
-
+            else:
+                options.print_error("Failed to match output to tile")
             s = f"(({idy}, {idx}), {tile})"
+            print(s)
             output_data.append(s)
-    
     pretty_data = "\n    [ " + output_data[0] + "\n"
     for data in output_data[1:]:
         pretty_data += "    , " + data + "\n"
