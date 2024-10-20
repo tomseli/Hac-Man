@@ -1,5 +1,6 @@
 import argparse
 import sys
+import re
 
 class Options():
     def __init__(self):
@@ -8,27 +9,41 @@ class Options():
         )
 
         self.parser.add_argument(
-            'filename', help="path to the file that needs to be parsed"
+            'filename', 
+            help="path to the file that needs to be parsed"
         )
         self.parser.add_argument(
-            '--output', '-o', help="change the default output location/name (default: Out.hs)"
+            '--output', '-o',
+            default="Out.hs", 
+            help=f"change the default output location/name (default: %(default)s)"
         )
         self.parser.add_argument(
-            '--module', '-m', help="custom module name (default: derived from filename)"
+            '--module', '-m', # default gets modified later
+            help="custom module name (default: derived from filename)"
         )
         self.parser.add_argument(
-            '--function', '-f', help="custom function name to use in the output (default: customMaze)"
+            '--function', '-f',
+            default="customMaze", 
+            help="custom function name to use in the output (default: customMaze)"
         )   
         self.parser.add_argument(
-            '--import', '-i', help="add a custom import to the top of the file (default: None)" 
+            '--import', '-i', 
+            help="add a custom import to the top of the file (default: None)" 
         )
         self.parser.add_argument(
-            '--verbose', '-v', help="prints more verbose output", action='store_const', const=True
+            '--verbose', '-v', 
+            help="prints more verbose output", 
+            action='store_const', 
+            const=True
         )
         self.args = vars(self.parser.parse_args())
 
+        # Modify the default of -m to derive from the filename
+        default = re.search(r"[^\\/]+(?=\.\w+$)", self.args["filename"])[0] 
+        self.args["module"] = default if self.args["module"] is None else self.args["module"]
+
         self.verbose = self.args["verbose"]
-    
+
     def print_verbose(self, s):
         if self.verbose:
             print("[\033[94mINFO\033[00m] " + s)
@@ -39,6 +54,9 @@ class Options():
     def print_error(self, s):
         print("[\033[91mERROR\033[00m] " + s)
         exit()
+
+    def get_argv(self):
+        return " ".join(sys.argv)
 
     def print_args(self):
         self.print_verbose("Enabled verbose output")

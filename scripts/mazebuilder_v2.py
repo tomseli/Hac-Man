@@ -104,10 +104,7 @@ def main():
                 right = False
 
             # We should only do one, continue after a hit
-            # TODO: Complicated corners: 3-way corners, need a new sprite too
-
-
-            # Complicated corners, inner corners
+            # Complicated corners; inner corners
             # These are not guared for the edge, keep that in mind
             # But it is likely okay because above, below, left and right are true 
             if above and below and left and right:
@@ -145,18 +142,79 @@ def main():
                 options.print_warning(f"Couldn't solve (y: {idy}, x: {idx})")
 
     options.print_verbose("Verifying if replaced all tiles...")
-
     print_maze(output)
-
     for idy, row in enumerate(output):
         for idx, col in enumerate(row):
+            # Highest prio error, a bug caused not all tiles to be replaced
             if type(col) == RawTile:
                 options.print_error("Failed to replace all tiles. Check for \"X\"")
-            if col == Other.NOT_FOUND:
+            # Lower prio error, likely some illegal wall combination
+            elif col == Other.NOT_FOUND:
                 options.print_error("Failed to recognize a tile. Check for \"E\"")
+    options.print_verbose("Successfully solved maze")
 
-    options.print_verbose("Solved maze successfully")
+    options.print_verbose("Preparing output...")
+    output_data = []
+    for idy, row in enumerate(output):
+        for idx, col in enumerate(row):
+            wall = "MkWall"
+            floor = "MkFloor"
+            if type(col) == TileWall:
+                match col.value:
+                    case TileWall.VERTICAL.value:
+                        tile = f"{wall} (MkWallShape Vertical)"
+                    case TileWall.VERTICAL.value:
+                        tile = f"{wall} (MkWallShape Horizontal)"
+            elif type(col) == TileCorner:
+                match col.value:
+                    case TileCorner.NE.value:
+                        tile = f"{wall} (MkCorner NE)"
+                    case TileCorner.SE.value:
+                        tile = f"{wall} (MkCorner SE)"
+                    case TileCorner.SW.value:
+                        tile = f"{wall} (MkCorner SW)"
+                    case TileCorner.NW.value:
+                        tile = f"{wall} (MkCorner NW)"
+            elif type(col) == TileOther:
+                match col.value:
+                    case TileOther.EMPTY.value:
+                        tile = f"{floor} EmptyTile"
+                    case TileOther.PELLET.value:
+                        tile = f"{floor} (MkConsumable Pellet)"
+                    case TileOther.SUPER.value:
+                        tile = f"{floor} (MkConsumable SuperPellet)"
 
+            s = f"(({idy}, {idx}), {tile})"
+            output_data.append(s)
+    
+    pretty_data = "\n    [ " + output_data[0] + "\n"
+    for data in output_data[1:]:
+        pretty_data += "    , " + data + "\n"
+    pretty_data += "    ]"
+    options.print_verbose("Successfully prepared output")
+
+    options.print_verbose("Writing output...")
+    path = options.args["output"]
+    func = options.args["function"]
+    module = options.args["module"]
+
+    with open(path, 'w+') as file:
+        file.write(f"module {module} where\n\n")
+        
+        if options.args["import"] is not None:
+            file.write(f"import {options.args["import"]}\n\n")
+
+        file.write(f"""import qualified Data.Map as Map
+
+-- generated using:
+-- python {options.get_argv()}
+{func} :: Maze
+{func} = foldr f Map.empty xs
+ where 
+  f (k, v) = Map.insert k v
+  xs = {pretty_data}
+""")
+    options.print_verbose(f"Successfully wrote to {options.args["output"]}")
     
 def print_maze(maze):
     print()
@@ -181,21 +239,3 @@ def print_maze(maze):
 
 if __name__ == "__main__":
     main()
-
-# with open(output_path, 'w+') as file:
-#     file.write(f"module {module_name} where\n\n")
-    
-#     if args["import"] is not None:
-#         file.write(f"import {args["import"]}\n\n")
-               
-#     file.write(f"""import qualified Data.Map as Map
-               
-# -- generated using:
-# -- python {args_comment}
-# {func_name} :: Maze
-# {func_name} = foldr f Map.empty xs
-#  where 
-#   f (k, v) = Map.insert k v
-#   xs = 
-# {ls}
-# """)
