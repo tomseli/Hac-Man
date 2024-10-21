@@ -3,20 +3,10 @@
 module Controller.Controller where
 
 import Controller.EntityController
-    ( moveStep, checkEntCollision, changeDirPlayer )
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss -- Event, EventKey
 import Model.Entities
-    ( Direction(Right, Left, Up, Down),
-      Entity(movement),
-      Movement(speed),
-      Player(entity) )
-
 import Model.Model
-    ( GameState(MkGameState, status, maze, elapsedTime, windowInfo,
-                player, enableDebug),
-      GameStatus(Quitting),
-      WindowInfo(MkWindowInfo) )
-import System.Exit (exitSuccess)
+import System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do

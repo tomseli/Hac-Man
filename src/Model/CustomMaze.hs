@@ -5,7 +5,7 @@ import Model.Maze
 import qualified Data.Map as Map
 
 -- generated using:
--- python .\scripts\mazebuilder_v2.py .\scripts\data\test.txt -m Model.CustomMaze -o .\src\Model\CustomMaze.hs -i Model.Maze -v
+-- python .\scripts\mazebuilder_v2.py .\scripts\data\maze_large.txt -m Model.CustomMaze -o .\src\Model\CustomMaze.hs -i Model.Maze -v
 customMaze :: Maze
 customMaze = foldr f Map.empty xs
  where 

@@ -3,8 +3,8 @@ module View.Transform where
 import qualified Data.Map as Map
 import Data.Maybe
 import qualified Graphics.Gloss.Data.Picture as Gloss
-import Model.Maze (Maze)
-import Model.Model (WindowInfo (..))
+import Model.Maze 
+import Model.Model 
 
 gameArea :: (Int, Int)
 gameArea = (820, 1024)
