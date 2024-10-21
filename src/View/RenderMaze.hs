@@ -5,53 +5,64 @@ import qualified Graphics.Gloss as Gloss
 import Model.Maze
 import View.Transform
 
-type Sprite = Gloss.Picture
+type Name = String
 
-type Sprites = (Gloss.Picture, Gloss.Picture)
+type Sprite = IO Gloss.Picture
 
--- import View.Transform
+type Sprites = Map.Map Name Sprite
 
-straightWall :: IO Gloss.Picture
-straightWall = Gloss.loadBMP "assets\\wall_straight.bmp"
+activeSpritesPath :: [(Name, String)]
+activeSpritesPath =
+  [ ("straigtWall", "assets\\wall_straight.bmp")
+  , ("cornerWall", "assets\\wall_rounded_corner.bmp")
+  ]
 
-cornerWall :: IO Gloss.Picture
-cornerWall = Gloss.loadBMP "assets\\wall_rounded_corner.bmp"
+loadActiveSprites :: [(Name, String)] -> Sprites
+loadActiveSprites = foldr f Map.empty
+ where
+  f (k, v) = Map.insert k (Gloss.loadBMP v)
+
+activeSprites :: Sprites
+activeSprites = loadActiveSprites activeSpritesPath
 
 renderMaze :: Maze -> IO Gloss.Picture -> IO Gloss.Picture
 renderMaze maze pic = pic <> renderMaze' maze
 
 renderMaze' :: Maze -> IO Gloss.Picture
 renderMaze' m = do
-  putStrLn "AHHHHHHHHH"
-  -- some fancy ass syntax to make a tuple as one liner
-  sprites <- (,) <$> straightWall <*> cornerWall
-  let maze = Map.foldrWithKey (\k v acc -> renderTile sprites k v <> acc) Gloss.Blank m
-  return $ transformToMaze m maze
+  let mazeSprite = Map.foldrWithKey (\k v acc -> renderTile k v <> acc) (return Gloss.Blank) m
+  do
+    transformToMaze m <$> mazeSprite
 
-renderTile :: Sprites -> TilePosition -> Tile -> Gloss.Picture
-renderTile sprites pos (MkWall t) = translateTile pos (renderWall t sprites)
-renderTile _ pos (MkFloor t) = translateTile pos (renderFloor t Gloss.Blank)
+renderTile :: TilePosition -> Tile -> Sprite
+renderTile pos (MkWall t) = translateSprite pos (renderWall t)
+renderTile pos (MkFloor t) = translateSprite pos (renderFloor t)
 
-renderWall :: WallShape -> Sprites -> Gloss.Picture
-renderWall (MkWallShape orient) sprites = renderStraightWall orient (fst sprites)
-renderWall (MkCorner orient) sprites = renderCornerWall orient (snd sprites)
+renderWall :: WallShape -> Sprite
+renderWall (MkWallShape orient) = renderWallStraight orient
+renderWall (MkCorner orient) = renderWallCorner orient
 
-renderStraightWall :: WallOrientation -> Gloss.Picture -> Gloss.Picture
-renderStraightWall Horizontal sprite = sprite -- default
-renderStraightWall Vertical sprite = Gloss.rotate 90 sprite
+renderWallStraight :: WallOrientation -> Sprite
+renderWallStraight Horizontal = activeSprites Map.! "straigtWall" -- default
+renderWallStraight Vertical = rotateSprite 90 $ activeSprites Map.! "straigtWall"
 
-renderCornerWall :: CornerOrientation -> Gloss.Picture -> Gloss.Picture
-renderCornerWall NE = Gloss.rotate 180
-renderCornerWall SE = Gloss.rotate 270
-renderCornerWall SW = Gloss.rotate 0 -- default
-renderCornerWall NW = Gloss.rotate 90
+renderWallCorner :: CornerOrientation -> Sprite
+renderWallCorner NE = rotateSprite 180 $ activeSprites Map.! "cornerWall"
+renderWallCorner SE = rotateSprite 270 $ activeSprites Map.! "cornerWall"
+renderWallCorner SW = rotateSprite 0 $ activeSprites Map.! "cornerWall" -- default
+renderWallCorner NW = rotateSprite 90 $ activeSprites Map.! "cornerWall"
 
-renderFloor :: FloorType -> Gloss.Picture -> Gloss.Picture
-renderFloor EmptyTile _ = Gloss.Blank
-renderFloor (MkConsumable _) _ = Gloss.Blank
+renderFloor :: FloorType -> Sprite
+renderFloor EmptyTile = return Gloss.Blank
+renderFloor (MkConsumable _) = return Gloss.Blank
 
-translateTile :: TilePosition -> Gloss.Picture -> Gloss.Picture
-translateTile (x, y) =
+translateSprite :: TilePosition -> Sprite -> Sprite
+translateSprite (x, y) s = do
   Gloss.translate
     (fromIntegral x * fst tileSize + fst tileSize / 2)
     (fromIntegral (-y) * fst tileSize - fst tileSize / 2)
+    <$> s
+
+rotateSprite :: Float -> Sprite -> Sprite
+rotateSprite deg sprite = do
+  Gloss.rotate deg <$> sprite
