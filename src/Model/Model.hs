@@ -5,7 +5,7 @@ import Model.CustomMaze
 import Model.Entities
 import Model.Maze
 
-data GameStatus = Running | GameOver | Paused | Quitting
+data GameStatus = Running | GameOver | Paused | Quitting deriving Eq
 
 newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 
@@ -17,6 +17,7 @@ data GameState = MkGameState
   , windowInfo :: WindowInfo
   , player :: Player
   }
+
 
 initialState :: GameState
 initialState =
