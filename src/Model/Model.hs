@@ -1,7 +1,6 @@
 module Model.Model where
 
-import Controller.EntityController
-import Model.CustomMaze
+import Graphics.Gloss as Gloss
 import Model.Entities
 import Model.Maze
 
@@ -12,19 +11,9 @@ newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 data GameState = MkGameState
   { status :: GameStatus
   , maze :: Maze
+  , mazePicture :: Gloss.Picture
   , elapsedTime :: Float
   , enableDebug :: Bool
   , windowInfo :: WindowInfo
   , player :: Player
   }
-
-initialState :: GameState
-initialState =
-  MkGameState
-    { status = Running
-    , maze = customMaze
-    , elapsedTime = 0
-    , enableDebug = True
-    , windowInfo = MkWindowInfo (0, 0)
-    , player = testPlayer
-    }

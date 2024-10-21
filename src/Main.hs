@@ -1,24 +1,41 @@
 module Main where
 
 import Controller.Controller
-import Graphics.Gloss
-import Graphics.Gloss.Interface.IO.Game
+import Controller.EntityController
+import qualified Graphics.Gloss as Gloss
+import qualified Graphics.Gloss.Interface.IO.Game as GlossIO
+import Model.CustomMaze
 import Model.Model
+import System.IO.Unsafe
+import View.RenderMaze
 import View.View
 
 -- needed when opening in windowed mode
 -- import View.Transform
 
-window :: Display
+window :: Gloss.Display
 -- window = InWindow "Hac-Man" gameArea (0, 0)
-window = FullScreen
+window = Gloss.FullScreen
+
+initialState :: GameState
+initialState =
+  MkGameState
+    { status = Running
+    , maze = customMaze
+    , -- this is very stupid. But until I find an alternative, this will do
+      mazePicture = unsafePerformIO $ renderMaze customMaze (return Gloss.Blank)
+    , elapsedTime = 0
+    , enableDebug = True
+    , windowInfo = MkWindowInfo (0, 0)
+    , player = testPlayer
+    }
 
 main :: IO ()
 main = do
-  playIO
+  GlossIO.playIO
     window
-    black
-    30
+    Gloss.black
+    60
     initialState
     render
     eventHandler

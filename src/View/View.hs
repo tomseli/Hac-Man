@@ -6,7 +6,6 @@
 module View.View where
 
 import Controller.EntityController
-import qualified Data.Map as Map
 import qualified Graphics.Gloss.Data.Color as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
 import Model.Entities
@@ -18,15 +17,21 @@ import Prelude hiding (Left, Right)
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
 render :: GameState -> IO Gloss.Picture
-render state@MkGameState{windowInfo = wInfo, player = player, maze = maze} = do
-  return $
-    transformPicture wInfo $
-      ( renderDebugInfo state
-          . renderLogo
-          . renderMaze state
-          . renderPlayer player maze
-      )
-        Gloss.Blank
+render
+  state@MkGameState
+    { windowInfo = wInfo
+    , player = player
+    , maze = maze
+    , mazePicture = mazePic
+    } = do
+    let purePicture =
+          ( renderDebugInfo state
+              . renderLogo
+              -- . renderMaze state
+              . renderPlayer player maze
+          )
+            Gloss.Blank
+    return (transformPicture wInfo $ mazePic <> purePicture)
 
 -- Add a bitmap (Add, when making the renderEntity)
 -- note this is eta reduced to hell and back
@@ -99,19 +104,19 @@ renderGameArea =
   x = fromIntegral $ fst gameArea
   y = fromIntegral $ snd gameArea
 
-renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
-renderMaze MkGameState{maze = m} p =
-  p <> transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
- where
-  f k v acc = renderTile k v <> acc
+-- renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
+-- renderMaze MkGameState{maze = m} p =
+--   p <> transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
+--  where
+--   f k v acc = renderTile k v <> acc
 
-renderTile :: TilePosition -> Tile -> Gloss.Picture
-renderTile (x, y) (MkWall _) =
-  renderSquare
-    (fromIntegral x * fst tileSize, fromIntegral (-y) * snd tileSize)
-    (fst tileSize - 1, snd tileSize - 1) -- gives a tiny bit of padding for walls
-    Gloss.white
-renderTile _ (MkFloor _) = Gloss.Blank
+-- renderTile :: TilePosition -> Tile -> Gloss.Picture
+-- renderTile (x, y) (MkWall _) =
+--   renderSquare
+--     (fromIntegral x * fst tileSize, fromIntegral (-y) * snd tileSize)
+--     (fst tileSize - 1, snd tileSize - 1) -- gives a tiny bit of padding for walls
+--     Gloss.white
+-- renderTile _ (MkFloor _) = Gloss.Blank
 
 -- (x, y) -> (width, height) -> Gloss.Picture
 renderSquare :: (Float, Float) -> (Float, Float) -> Gloss.Color -> Gloss.Picture
