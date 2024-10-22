@@ -29,6 +29,7 @@ render
               . renderLogo
               -- . renderMaze state
               . renderPlayer player maze
+              . renderPlayerScore player
           )
             Gloss.Blank
     return (transformPicture wInfo $ mazePic <> purePicture)
@@ -38,7 +39,15 @@ render
 renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
 renderPlayer MkPlayer{entity} = renderEntity entity circle
  where
-  circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 16)
+  circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 32)
+
+renderPlayerScore :: Player -> Gloss.Picture -> Gloss.Picture
+renderPlayerScore MkPlayer{score} pic =
+  pic
+    <> (Gloss.color Gloss.white 
+        . Gloss.translate 300 (-100)
+        . Gloss.scale 0.25 0.25)
+       (Gloss.color Gloss.white (Gloss.text $ show score))
 
 renderEntity ::
   Entity -> Gloss.Picture -> Maze -> Gloss.Picture -> Gloss.Picture
@@ -67,7 +76,7 @@ renderNextPos ent maze =
     Gloss.translate x' y' $
       Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
  where
-  (x, y) = getNextPos ent 0.5
+  (x, y) = getNextPos ent 0.1
   (x', y') =
     ( (x * fst tileSize) + (fst tileSize / 2)
     , (y * snd tileSize) - (snd tileSize / 2)
@@ -76,7 +85,9 @@ renderNextPos ent maze =
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =
   pic
-    <> (Gloss.color Gloss.white . Gloss.translate 150 (-125))
+    <> (Gloss.color Gloss.white
+        . Gloss.translate 300 (-62)
+        . Gloss.scale 0.50 0.50)
       (Gloss.color Gloss.yellow (Gloss.text "PACMAN"))
 
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture

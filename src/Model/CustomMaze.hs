@@ -76,7 +76,7 @@ customMaze = foldr f Map.empty xs
     , ((2, 2), MkFloor EmptyTile)
     , ((3, 2), MkFloor EmptyTile)
     , ((4, 2), MkFloor EmptyTile)
-    , ((5, 2), MkFloor EmptyTile)
+    , ((5, 2), MkFloor (MkConsumable Pellet))
     , ((6, 2), MkFloor EmptyTile)
     , ((7, 2), MkFloor EmptyTile)
     , ((8, 2), MkFloor EmptyTile)

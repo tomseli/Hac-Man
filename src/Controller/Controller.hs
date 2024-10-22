@@ -11,7 +11,8 @@ import System.Exit
 step :: Float -> GameState -> IO GameState
 step dt state = do
   let newState = state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state}
-  checkStatus newState -- checkstate should be last in the pipeline
+  let updateMaze = checkConsumable newState (player state) (maze state)
+  checkStatus updateMaze -- checkstate should be last in the pipeline
 
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =

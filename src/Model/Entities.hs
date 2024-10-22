@@ -25,6 +25,7 @@ data Entity = MkEntity
 data Player = MkPlayer
   { entity :: Entity
   , lives :: Lives
+  , score :: Int
   }
 
 data GhostType = Inky | Pinky | Blinky | Clyde
