@@ -23,16 +23,24 @@ render
     , player = player
     , maze = maze
     , mazePicture = mazePic
+    , ghosts = [blinky]
     } = do
     let purePicture =
           ( renderDebugInfo state
               . renderLogo
               -- . renderMaze state
               . renderPlayer player maze
+              . renderBlinky blinky maze
               . renderPlayerScore player
           )
             Gloss.Blank
     return (transformPicture wInfo $ mazePic <> purePicture)
+render _ = return Gloss.Blank
+
+renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
+renderBlinky MkGhost{entityG} = renderEntity entityG circle
+  where
+    circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)  
 
 -- Add a bitmap (Add, when making the renderEntity)
 -- note this is eta reduced to hell and back
@@ -56,8 +64,8 @@ renderEntity MkEntity{movement} bmap m pic =
     <> transformToMaze
       m
       ( Gloss.translate
-          ((x1 * fst tileSize) + (fst tileSize / 2))
-          ((y1 * snd tileSize) - (snd tileSize / 2))
+          ((x * fst tileSize) + (fst tileSize / 2))
+          ((y * snd tileSize) - (snd tileSize / 2))
           bmap
       )
  where

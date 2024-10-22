@@ -21,6 +21,7 @@ type Lives = Int
 
 data Entity = MkEntity
   { movement :: Movement
+  , oldDirection :: Direction
   , alive :: IsAlive
   }
 
@@ -36,21 +37,19 @@ data Ghost = MkGhost
   , behaviourMode :: BehaviourMode
   }
 
-
-
 ghostEntity :: Entity
 ghostEntity =
   MkEntity
     { movement =
         MkMovement
           { direction = Model.Entities.Left
-          , speed = 5
-          , position = (2, -2)
+          , speed = 6
+          , position = (27, -2)
           , heading = Model.Entities.Left
           }
     , alive = Alive
+    , oldDirection = Still
     }
-    
 initiateblinky :: Ghost
 initiateblinky =
   MkGhost
@@ -59,18 +58,18 @@ initiateblinky =
     , behaviourMode = Chase
     }
 
-
 pacmanEntity :: Entity
 pacmanEntity =
   MkEntity
     { movement =
         MkMovement
           { direction = Still
-          , speed = 8
+          , speed = 11
           , position = (2, -2)
           , heading = Still
           }
     , alive = Alive
+    , oldDirection = Still
     }
 
 initiatePlayer :: Player

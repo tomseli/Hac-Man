@@ -2,6 +2,7 @@
 
 module Controller.Controller where
 import Controller.EntityController
+import Controller.GhostController
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss
 import Model.Entities
 import Model.Model
@@ -9,9 +10,19 @@ import System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let newState = state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state}
+  let ghostDirections = map (direction . movement . entityG) (ghosts state)
+  putStrLn $ "Ghost directions: " ++ show ghostDirections  -- Print the directions
+
+  let newState = state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
+
+    -- Print the directions of all ghosts after they've been updated
+  let ghostDirections2 = map (direction . movement . entityG) (ghosts newState)
+  putStrLn $ "Updated ghost directions: " ++ show ghostDirections2  -- Print the directions
+
   checkStatus updateMaze -- checkstate should be last in the pipeline
+
+  
 
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =
@@ -22,6 +33,12 @@ updatePlayer dt state =
           ((speed . movement . entity . player) state * dt)
           (maze state)
     }
+
+updateGhosts :: Float -> GameState -> [Ghost]
+updateGhosts dt state = [updateGhost dt state x | x <- ghosts state] 
+
+updateGhost :: Float -> GameState -> Ghost -> Ghost
+updateGhost dt state ghost = ghost {entityG = moveGhost state (entityG ghost) ((speed . movement . entityG) ghost * dt) (maze state)}
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state

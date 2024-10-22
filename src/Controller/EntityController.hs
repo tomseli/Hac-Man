@@ -56,17 +56,6 @@ checkWall ent (MkWall _) =
       Still
 checkWall _ _ = Nothing
 
-actOnCollision :: Entity -> Tile -> Maybe Entity
-actOnCollision _ (MkFloor EmptyTile) = Nothing
-actOnCollision _ (MkFloor (MkConsumable _)) = undefined
-actOnCollision ent (MkWall _) =
-  Just $
-    changeDirEnt
-      ( ent
-          { movement = (movement ent){position = snapToGrid ((position . movement) ent)}
-          }
-      )
-      Still
 
 changeDirEnt :: Entity -> Direction -> Entity
 changeDirEnt ent dir = ent{movement = (movement ent){direction = dir}}
@@ -76,11 +65,11 @@ changeHeadingEnt ent heading = ent{movement = (movement ent){heading = heading}}
 
 -- could be reused to not change direction, but for the ghost to check next pos
 checkValidHeading :: Entity -> Maze -> Entity
-checkValidHeading ent maze =
+checkValidHeading ent@MkEntity{movement = move} maze =
   let headingDir = (heading . movement) ent
       entity = changeDirEnt ent headingDir
-   in case checkEntCollision checkWall entity 1 maze of
-        Nothing -> if snapToGridApproxEqual (x, y) then changeDirEnt ent headingDir else ent
+   in case checkEntCollision checkWall entity 1.0 maze of
+        Nothing -> if snapToGridApproxEqual (x, y) then changeDirEnt ent{movement = move{position = snapToGrid ((position.movement) ent)}} headingDir else ent
         Just _ -> ent
  where
   (x, y) = (position . movement) ent
@@ -91,7 +80,7 @@ snapToGridApproxEqual (x1, y1) =
   abs (x1 - x2) <= tolerance && abs (y1 - y2) <= tolerance
  where
   (x2, y2) = snapToGrid (x1, y1)
-  tolerance = 0.15 -- 15% tilesize
+  tolerance = 0.01 -- 15% tilesize
 
 changeDirPlayer :: Player -> Direction -> Player
 changeDirPlayer player direction = player{entity = updateDirection}
