@@ -10,16 +10,8 @@ import System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let ghostDirections = map (direction . movement . entityG) (ghosts state)
-  putStrLn $ "Ghost directions: " ++ show ghostDirections  -- Print the directions
-
   let newState = state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
-
-    -- Print the directions of all ghosts after they've been updated
-  let ghostDirections2 = map (direction . movement . entityG) (ghosts newState)
-  putStrLn $ "Updated ghost directions: " ++ show ghostDirections2  -- Print the directions
-
   checkStatus updateMaze -- checkstate should be last in the pipeline
 
   
