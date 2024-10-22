@@ -5,7 +5,6 @@
 module Controller.EntityController where
 
 import qualified Data.Map as Map
-import Data.Sequence (Seq (Empty))
 import Model.Entities
 import Model.Maze
 import Model.Model
@@ -173,12 +172,12 @@ handleConsumable state player tile = case retrieveConsumable' tile of
 handleConsumable' :: GameState -> TilePosition -> ConsumableType -> GameState
 handleConsumable' state@MkGameState{maze, player} pos cType =
   state
-    { maze   = Map.insert pos (MkFloor EmptyTile) maze
+    { maze = Map.insert pos (MkFloor EmptyTile) maze
     , player = updateScore cType player
     }
 
---update with the correct values
+-- update with the correct values
 updateScore :: ConsumableType -> Player -> Player
-updateScore Pellet player      = player{score = score player + 10}
+updateScore Pellet player = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
-updateScore Cherry player      = player{score = score player + 100}
+updateScore Cherry player = player{score = score player + 100}

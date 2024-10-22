@@ -3,66 +3,77 @@ module View.RenderMaze where
 import qualified Data.Map as Map
 import qualified Graphics.Gloss as Gloss
 import Model.Maze
+import Model.Model
 import View.Transform
 
-type Name = String
+----------------------------------------------------------------------------------
+-- Used in main to load the sprites
+-- Impure
+loadActiveSprites :: IO [(Name, Sprite)]
+loadActiveSprites = do
+  sprts <- loadActiveSprites' activeSpritesPaths
+  let names = map fst activeSpritesPaths
+  return (zip names sprts)
 
-type Sprite = IO Gloss.Picture
+loadActiveSprites' :: [(Name, String)] -> IO [Sprite]
+loadActiveSprites' = mapM f
+ where
+  f (_, path) = Gloss.loadBMP path
 
-type Sprites = Map.Map Name Sprite
-
-activeSpritesPath :: [(Name, String)]
-activeSpritesPath =
+-- Pure
+activeSpritesPaths :: [(Name, String)]
+activeSpritesPaths =
   [ ("straigtWall", "assets\\wall_straight.bmp")
   , ("cornerWall", "assets\\wall_rounded_corner.bmp")
+  , ("pellet", "assets\\pellet.bmp")
+  , ("superPellet", "assets\\super_pellet.bmp")
   ]
 
-loadActiveSprites :: [(Name, String)] -> Sprites
-loadActiveSprites = foldr f Map.empty
+storeActiveSprites :: [(Name, Sprite)] -> Map.Map Name Sprite
+storeActiveSprites = foldr f Map.empty
  where
-  f (k, v) = Map.insert k (Gloss.loadBMP v)
+  f (name, sprite) = Map.insert name sprite
 
-activeSprites :: Sprites
-activeSprites = loadActiveSprites activeSpritesPath
+----------------------------------------------------------------------------------
 
-renderMaze :: Maze -> IO Gloss.Picture -> IO Gloss.Picture
-renderMaze maze pic = pic <> renderMaze' maze
+renderMaze :: Maze -> Sprites -> Gloss.Picture -> Gloss.Picture
+renderMaze m mSprites pic = pic <> renderMaze' m mSprites
 
-renderMaze' :: Maze -> IO Gloss.Picture
-renderMaze' m = do
-  let mazeSprite = Map.foldrWithKey (\k v acc -> renderTile k v <> acc) (return Gloss.Blank) m
-  do
-    transformToMaze m <$> mazeSprite
+renderMaze' :: Maze -> Sprites -> Gloss.Picture
+renderMaze' m mSprites =
+  transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
+ where
+  f k v acc = renderTile k v mSprites <> acc
 
-renderTile :: TilePosition -> Tile -> Sprite
-renderTile pos (MkWall t) = translateSprite pos (renderWall t)
-renderTile pos (MkFloor t) = translateSprite pos (renderFloor t)
+renderTile :: TilePosition -> Tile -> Sprites -> Sprite
+renderTile pos (MkWall t) mSprites = translateSprite pos (renderWall t mSprites)
+renderTile pos (MkFloor t) mSprites = translateSprite pos (renderFloor t mSprites)
 
-renderWall :: WallShape -> Sprite
-renderWall (MkWallShape orient) = renderWallStraight orient
-renderWall (MkCorner orient) = renderWallCorner orient
+renderWall :: WallShape -> Sprites -> Sprite
+renderWall (MkWallShape orient) mSprites = renderWallStraight orient mSprites
+renderWall (MkCorner orient) mSprites = renderWallCorner orient mSprites
 
-renderWallStraight :: WallOrientation -> Sprite
-renderWallStraight Horizontal = activeSprites Map.! "straigtWall" -- default
-renderWallStraight Vertical = rotateSprite 90 $ activeSprites Map.! "straigtWall"
+renderWallStraight :: WallOrientation -> Sprites -> Sprite
+renderWallStraight Horizontal mSprites = mSprites Map.! "straigtWall" -- default
+renderWallStraight Vertical mSprites = Gloss.rotate 90 $ mSprites Map.! "straigtWall"
 
-renderWallCorner :: CornerOrientation -> Sprite
-renderWallCorner NE = rotateSprite 180 $ activeSprites Map.! "cornerWall"
-renderWallCorner SE = rotateSprite 270 $ activeSprites Map.! "cornerWall"
-renderWallCorner SW = rotateSprite 0 $ activeSprites Map.! "cornerWall" -- default
-renderWallCorner NW = rotateSprite 90 $ activeSprites Map.! "cornerWall"
+renderWallCorner :: CornerOrientation -> Sprites -> Sprite
+renderWallCorner NE mSprites = Gloss.rotate 180 $ mSprites Map.! "cornerWall"
+renderWallCorner SE mSprites = Gloss.rotate 270 $ mSprites Map.! "cornerWall"
+renderWallCorner SW mSprites = Gloss.rotate 0 $ mSprites Map.! "cornerWall" -- default
+renderWallCorner NW mSprites = Gloss.rotate 90 $ mSprites Map.! "cornerWall"
 
-renderFloor :: FloorType -> Sprite
-renderFloor EmptyTile = return Gloss.Blank
-renderFloor (MkConsumable _) = return Gloss.Blank
+renderFloor :: FloorType -> Sprites -> Sprite
+renderFloor EmptyTile _ = Gloss.Blank
+renderFloor (MkConsumable c) mSprites = renderConsumable c mSprites
+
+renderConsumable :: ConsumableType -> Sprites -> Sprite
+renderConsumable Pellet mSprites = mSprites Map.! "pellet"
+renderConsumable SuperPellet mSprites = mSprites Map.! "superPellet"
+renderConsumable Cherry _ = Gloss.Blank -- TODO
 
 translateSprite :: TilePosition -> Sprite -> Sprite
-translateSprite (x, y) s = do
+translateSprite (x, y) =
   Gloss.translate
     (fromIntegral x * fst tileSize + fst tileSize / 2)
     (fromIntegral (-y) * fst tileSize - fst tileSize / 2)
-    <$> s
-
-rotateSprite :: Float -> Sprite -> Sprite
-rotateSprite deg sprite = do
-  Gloss.rotate deg <$> sprite
