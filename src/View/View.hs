@@ -29,8 +29,8 @@ render
       transformPicture wInfo $
         ( renderDebugInfo state
             . renderLogo
-            . renderMaze maze spriteMap
             . renderPlayer player maze
+            . renderMaze maze spriteMap
         )
           Gloss.Blank
 

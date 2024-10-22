@@ -7,12 +7,12 @@ import Model.Model
 import View.Transform
 
 ----------------------------------------------------------------------------------
--- Impure
 -- Used in main to load the sprites
-loadActiveSprites :: [(Name, String)] -> IO [(Name, Sprite)]
-loadActiveSprites ls = do
-  sprts <- loadActiveSprites' ls
-  let names = map fst ls
+-- Impure
+loadActiveSprites :: IO [(Name, Sprite)]
+loadActiveSprites = do
+  sprts <- loadActiveSprites' activeSpritesPaths
+  let names = map fst activeSpritesPaths
   return (zip names sprts)
 
 loadActiveSprites' :: [(Name, String)] -> IO [Sprite]
@@ -25,8 +25,8 @@ activeSpritesPaths :: [(Name, String)]
 activeSpritesPaths =
   [ ("straigtWall", "assets\\wall_straight.bmp")
   , ("cornerWall", "assets\\wall_rounded_corner.bmp")
-  -- , ("pellet", "assets\\pellet.bmp")
-  -- , ("superPellet", "assets\\super_pellet.bmp")
+  , ("pellet", "assets\\pellet.bmp")
+  , ("superPellet", "assets\\super_pellet.bmp")
   ]
 
 storeActiveSprites :: [(Name, Sprite)] -> Map.Map Name Sprite
@@ -41,9 +41,9 @@ renderMaze m mSprites pic = pic <> renderMaze' m mSprites
 
 renderMaze' :: Maze -> Sprites -> Gloss.Picture
 renderMaze' m mSprites =
-  transformToMaze
-    m
-    (Map.foldrWithKey (\k v acc -> renderTile k v mSprites <> acc) Gloss.Blank m)
+  transformToMaze m (Map.foldrWithKey f Gloss.Blank m)
+ where
+  f k v acc = renderTile k v mSprites <> acc
 
 renderTile :: TilePosition -> Tile -> Sprites -> Sprite
 renderTile pos (MkWall t) mSprites = translateSprite pos (renderWall t mSprites)
@@ -65,7 +65,12 @@ renderWallCorner NW mSprites = Gloss.rotate 90 $ mSprites Map.! "cornerWall"
 
 renderFloor :: FloorType -> Sprites -> Sprite
 renderFloor EmptyTile _ = Gloss.Blank
-renderFloor (MkConsumable _) _ = Gloss.Blank
+renderFloor (MkConsumable c) mSprites = renderConsumable c mSprites
+
+renderConsumable :: ConsumableType -> Sprites -> Sprite
+renderConsumable Pellet mSprites = mSprites Map.! "pellet"
+renderConsumable SuperPellet mSprites = mSprites Map.! "superPellet"
+renderConsumable Cherry _ = Gloss.Blank -- TODO
 
 translateSprite :: TilePosition -> Sprite -> Sprite
 translateSprite (x, y) =

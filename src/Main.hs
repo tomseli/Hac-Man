@@ -32,7 +32,7 @@ initialState x =
 main :: IO ()
 main = do
   -- load sprites into a map of sprites
-  sp <- loadActiveSprites activeSpritesPaths
+  sp <- loadActiveSprites
   let spriteMap = storeActiveSprites sp
 
   GlossIO.playIO
