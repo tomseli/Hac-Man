@@ -1,7 +1,7 @@
 module Main where
 
 import Controller.Controller
-import Controller.EntityController
+import Model.Entities
 import qualified Graphics.Gloss as Gloss
 import qualified Graphics.Gloss.Interface.IO.Game as GlossIO
 import Model.CustomMaze
@@ -27,7 +27,8 @@ initialState =
     , elapsedTime = 0
     , enableDebug = True
     , windowInfo = MkWindowInfo (0, 0)
-    , player = testPlayer
+    , player = initiatePlayer
+    , ghosts = [initiateblinky]
     }
 
 main :: IO ()

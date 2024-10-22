@@ -16,4 +16,5 @@ data GameState = MkGameState
   , enableDebug :: Bool
   , windowInfo :: WindowInfo
   , player :: Player
+  , ghosts :: [Ghost]
   }

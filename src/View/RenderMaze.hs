@@ -54,7 +54,7 @@ renderWallCorner NW = rotateSprite 90 $ activeSprites Map.! "cornerWall"
 
 renderFloor :: FloorType -> Sprite
 renderFloor EmptyTile = return Gloss.Blank
-renderFloor (MkConsumable _) = return Gloss.Blank
+renderFloor (MkConsumable _) = return $ Gloss.color Gloss.orange (Gloss.ThickCircle 0 8)
 
 translateSprite :: TilePosition -> Sprite -> Sprite
 translateSprite (x, y) s = do

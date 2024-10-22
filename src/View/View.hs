@@ -76,7 +76,7 @@ renderNextPos ent maze =
     Gloss.translate x' y' $
       Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
  where
-  (x, y) = getNextPos ent 0.1
+  (x, y) = getNextPos ((position.movement) ent) ((direction.movement) ent) 0.1
   (x', y') =
     ( (x * fst tileSize) + (fst tileSize / 2)
     , (y * snd tileSize) - (snd tileSize / 2)

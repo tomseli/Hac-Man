@@ -5,7 +5,6 @@
 module Controller.EntityController where
 
 import qualified Data.Map as Map
-import Data.Sequence (Seq (Empty))
 import Model.Entities
 import Model.Maze
 import Model.Model
@@ -44,7 +43,7 @@ checkEntCollision f ent ran maze =
     Nothing -> Nothing
     Just tile -> f ent tile
  where
-  (x, y) = getNextPos ent ran
+  (x, y) = getNextPos ((position . movement) ent) ((direction . movement) ent) ran
 
 checkWall :: Entity -> Tile -> Maybe Entity
 checkWall ent (MkWall _) =
@@ -92,7 +91,7 @@ snapToGridApproxEqual (x1, y1) =
   abs (x1 - x2) <= tolerance && abs (y1 - y2) <= tolerance
  where
   (x2, y2) = snapToGrid (x1, y1)
-  tolerance = 0.1 -- 10% tilesize
+  tolerance = 0.15 -- 15% tilesize
 
 changeDirPlayer :: Player -> Direction -> Player
 changeDirPlayer player direction = player{entity = updateDirection}
@@ -107,11 +106,9 @@ changeHeadPlayer player direction = player{entity = updateHeading}
 snapToGrid :: EntityPosition -> EntityPosition
 snapToGrid (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round y))
 
-getNextPos :: Entity -> Float -> EntityPosition
-getNextPos ent ran = (x', y')
+getNextPos :: EntityPosition -> Direction -> Float -> EntityPosition
+getNextPos (x, y) dir ran = (x', y')
  where
-  dir = (direction . movement) ent
-  (x, y) = (position . movement) ent
   (x', y') = nPos dir
   nPos Model.Entities.Up = (fromIntegral @Int (round x), y + ran)
   nPos Model.Entities.Left = (x - ran, fromIntegral @Int (round y))
@@ -122,26 +119,7 @@ getNextPos ent ran = (x', y')
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
-testEntity :: Entity
-testEntity =
-  MkEntity
-    { movement =
-        MkMovement
-          { direction = Still
-          , speed = 8
-          , position = (2, -2)
-          , heading = Still
-          }
-    , alive = Alive
-    }
 
-testPlayer :: Player
-testPlayer =
-  MkPlayer
-    { entity = testEntity
-    , lives = 3
-    , score = 0
-    }
 
 -- checkEntCollision :: (Entity -> Tile -> Maybe Entity) -> Entity -> Float -> Maze -> Maybe Entity
 -- checkEntCollision f ent ran maze =
@@ -164,21 +142,22 @@ retrieveConsumable' (MkFloor (MkConsumable cons)) = Just cons
 retrieveConsumable' _ = Nothing
 
 handleConsumable :: GameState -> Player -> Tile -> GameState
-handleConsumable state player tile = case retrieveConsumable' tile of
-  Just cType -> handleConsumable' state tilePos cType
-  _ -> state -- update score etc.
+handleConsumable state player tile =
+  case retrieveConsumable' tile of
+    Just cType -> handleConsumable' state tilePos cType
+    _ -> state -- update score etc.
  where
   tilePos = getTilePos $ (position . movement . entity) player
 
 handleConsumable' :: GameState -> TilePosition -> ConsumableType -> GameState
 handleConsumable' state@MkGameState{maze, player} pos cType =
   state
-    { maze   = Map.insert pos (MkFloor EmptyTile) maze
+    { maze = Map.insert pos (MkFloor EmptyTile) maze
     , player = updateScore cType player
     }
 
---update with the correct values
+-- update with the correct values
 updateScore :: ConsumableType -> Player -> Player
-updateScore Pellet player      = player{score = score player + 10}
+updateScore Pellet player = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
-updateScore Cherry player      = player{score = score player + 100}
+updateScore Cherry player = player{score = score player + 100}

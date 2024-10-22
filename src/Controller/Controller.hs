@@ -1,7 +1,6 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Controller.Controller where
-
 import Controller.EntityController
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss
 import Model.Entities
