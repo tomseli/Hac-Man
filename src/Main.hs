@@ -2,13 +2,13 @@ module Main where
 
 import Controller.Controller
 import Controller.EntityController
+import qualified Data.Map as Map
 import qualified Graphics.Gloss as Gloss
 import qualified Graphics.Gloss.Interface.IO.Game as GlossIO
 import Model.CustomMaze
 import Model.Model
 import View.RenderMaze
 import View.View
-import System.IO.Unsafe
 
 -- needed when opening in windowed mode
 -- import View.Transform
@@ -17,13 +17,12 @@ window :: Gloss.Display
 -- window = InWindow "Hac-Man" gameArea (0, 0)
 window = Gloss.FullScreen
 
-initialState :: GameState
-initialState =
+initialState :: Map.Map Name Sprite -> GameState
+initialState x =
   MkGameState
     { status = Running
     , maze = customMaze
-    -- this is very stupid. But until I find an alternative, this will do
-    , mazePicture = unsafePerformIO $ renderMaze customMaze (return Gloss.Blank)
+    , sprites = x
     , elapsedTime = 0
     , enableDebug = True
     , windowInfo = MkWindowInfo (0, 0)
@@ -32,11 +31,15 @@ initialState =
 
 main :: IO ()
 main = do
+  -- load sprites into a map of sprites
+  sp <- loadActiveSprites activeSpritesPaths
+  let spriteMap = storeActiveSprites sp
+
   GlossIO.playIO
     window
     Gloss.black
     60
-    initialState
+    (initialState spriteMap)
     render
     eventHandler
     step
