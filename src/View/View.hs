@@ -64,8 +64,8 @@ renderEntity MkEntity{movement} bmap m pic =
     <> transformToMaze
       m
       ( Gloss.translate
-          ((x * fst tileSize) + (fst tileSize / 2))
-          ((y * snd tileSize) - (snd tileSize / 2))
+          ((x1 * fst tileSize) + (fst tileSize / 2))
+          ((y1 * snd tileSize) - (snd tileSize / 2))
           bmap
       )
  where

@@ -26,9 +26,9 @@ getValidDirections ent maz = [dir | dir <- listOfDirections, valid dir && not (i
     Just _ -> False
   invalid dir = dir ==  getOpDirection ent ((direction.movement) ent)
 
-chooseDirection :: [Direction] -> Entity -> EntityPosition -> EntityPosition -> Direction
-chooseDirection [] ent _ _ = (direction.movement) ent--go same direction
-chooseDirection xs _ (x, y) (x', y') =
+chooseDirection :: Entity -> [Direction] -> EntityPosition -> EntityPosition -> Direction
+chooseDirection ent []  _ _ = (direction.movement) ent --go same direction
+chooseDirection _ xs (x, y) (x', y') =
   minimumBy
     (comparing (\dir -> distanceTilePos (getNextPos (x, y) dir 1.0) (x', y')))
     xs
@@ -39,7 +39,7 @@ distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
 moveGhost :: GameState -> Entity -> Float -> Maze -> Entity
 moveGhost state ent dis maz = moveWithCollision (changeHeadingEnt ent{oldDirection = (direction.movement) ent} decision) dis maz
     where
-      decision = chooseDirection (getValidDirections ent maz) ent ((position.movement) ent) ((position.movement.entity.player) state)
+      decision = chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) ((position.movement.entity.player) state)
 
 getOpDirection :: Entity -> Direction -> Direction
 getOpDirection _ Model.Entities.Left = Model.Entities.Right
