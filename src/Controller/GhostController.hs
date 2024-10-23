@@ -36,10 +36,18 @@ chooseDirection _ xs (x, y) (x', y') =
 distanceTilePos :: EntityPosition -> EntityPosition -> Float
 distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
 
-moveGhost :: GameState -> Entity -> Float -> Maze -> Entity
-moveGhost state ent dis maz = moveWithCollision (changeHeadingEnt ent{oldDirection = (direction.movement) ent} decision) dis maz
+moveGhost :: GameState -> Ghost -> Float -> Maze -> Entity
+moveGhost _ ghost@MkGhost{entityG = ent} dis maz = moveWithCollision (changeHeadingEnt ent{oldDirection = (direction.movement) ent} decision) dis maz
     where
-      decision = chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) ((position.movement.entity.player) state)
+      decision = chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) (targetTile ghost)
+
+updateGhostPositions :: [Ghost] -> GameState -> [Ghost]
+updateGhostPositions [] _ = []
+updateGhostPositions xs state = [updateGhostPositions' x state | x <- xs]
+
+updateGhostPositions' :: Ghost -> GameState -> Ghost 
+updateGhostPositions' gh@MkGhost{ghostName = Blinky} state = gh{targetTile = (position.movement.entity.player) state}
+updateGhostPositions' g _      = g
 
 getOpDirection :: Entity -> Direction -> Direction
 getOpDirection _ Model.Entities.Left = Model.Entities.Right
