@@ -64,7 +64,7 @@ pacmanEntity =
     { movement =
         MkMovement
           { direction = Still
-          , speed = 11
+          , speed = 8
           , position = (2, -2)
           , heading = Still
           }

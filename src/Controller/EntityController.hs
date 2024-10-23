@@ -80,7 +80,7 @@ snapToGridApproxEqual (x1, y1) =
   abs (x1 - x2) <= tolerance && abs (y1 - y2) <= tolerance
  where
   (x2, y2) = snapToGrid (x1, y1)
-  tolerance = 0.01 -- 15% tilesize
+  tolerance = 0.08 -- 0.8% tilesize
 
 changeDirPlayer :: Player -> Direction -> Player
 changeDirPlayer player direction = player{entity = updateDirection}
@@ -110,11 +110,11 @@ getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y))
 
 --include a better function for handling a hit
 checkGhosts :: GameState -> GameState
-checkGhosts state@MkGameState{ghosts = xs, player = p}  | hit = state{player = p{lives = (lives p) -1}}
+checkGhosts state@MkGameState{ghosts = xs, player = p}  | hit = state{player = p{lives = lives p -1}}
                                                         | otherwise = state
     where
-      hit = foldr (\x a -> x == ((position.movement.entity) p) || a ) False ghostspos -- is dit niet gwn any?
-      ghostspos = [snapToGrid((position.movement.entityG) x) | x <- xs] -- get all ghost positions
+      hit = foldr (\x a -> x == (position.movement.entity) p || a ) False ghostspos -- is dit niet gwn any?
+      ghostspos = [snapToGrid ((position.movement.entityG) x) | x <- xs] -- get all ghost positions
 
 checkConsumable :: GameState -> Player -> Maze -> GameState
 checkConsumable state player maze =
