@@ -2,11 +2,14 @@
 
 module Controller.Controller where
 
-import Controller.EntityController
+import           Controller.EntityController
+
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss
-import Model.Entities
-import Model.Model
-import System.Exit
+
+import           Model.Entities
+import           Model.Model
+
+import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
@@ -65,4 +68,4 @@ checkStatus :: GameState -> IO GameState
 checkStatus state@MkGameState{status} =
   case status of
     Quitting -> exitSuccess
-    _ -> return state
+    _        -> return state

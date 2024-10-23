@@ -1,19 +1,23 @@
 {-# HLINT ignore "Use bimap" #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module View.View where
 
-import Controller.EntityController
-import qualified Graphics.Gloss.Data.Color as Gloss
+import           Controller.EntityController
+
+import qualified Graphics.Gloss.Data.Color   as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
-import Model.Entities
-import Model.Maze
-import Model.Model
-import View.RenderMaze
-import View.Transform
-import Prelude hiding (Left, Right)
+
+import           Model.Entities
+import           Model.Maze
+import           Model.Model
+
+import           Prelude                     hiding (Left, Right)
+
+import           View.RenderMaze
+import           View.Transform
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
@@ -66,10 +70,10 @@ renderEntity MkEntity{movement} bmap m pic =
   dir = direction movement
   (x1, y1) = case dir of
     Right -> (x, fromIntegral @Int (round y))
-    Left -> (x, fromIntegral @Int (round y))
-    Up -> (fromIntegral @Int (round x), y)
-    Down -> (fromIntegral @Int (round x), y)
-    _ -> (x, y)
+    Left  -> (x, fromIntegral @Int (round y))
+    Up    -> (fromIntegral @Int (round x), y)
+    Down  -> (fromIntegral @Int (round x), y)
+    _     -> (x, y)
   (x, y) = position movement
 
 renderNextPos :: Entity -> Maze -> Gloss.Picture

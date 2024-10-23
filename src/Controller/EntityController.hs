@@ -1,22 +1,22 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns   #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Controller.EntityController where
 
-import qualified Data.Map as Map
-import Model.Entities
-import Model.Maze
-import Model.Model
+import qualified Data.Map       as Map
+import           Model.Entities
+import           Model.Maze
+import           Model.Model
 
 -- should add maze for collision detection?
 moveStep :: Entity -> Float -> Entity
 moveStep ent@MkEntity{movement} stepx =
   case direction movement of
     Model.Entities.Right -> ent{movement = movement{position = (x + stepx, y)}}
-    Model.Entities.Left -> ent{movement = movement{position = (x - stepx, y)}}
-    Model.Entities.Up -> ent{movement = movement{position = (x, y + stepx)}}
-    Model.Entities.Down -> ent{movement = movement{position = (x, y - stepx)}}
+    Model.Entities.Left  -> ent{movement = movement{position = (x - stepx, y)}}
+    Model.Entities.Up    -> ent{movement = movement{position = (x, y + stepx)}}
+    Model.Entities.Down  -> ent{movement = movement{position = (x, y - stepx)}}
     Model.Entities.Still -> ent
  where
   (x, y) = position movement
@@ -34,13 +34,13 @@ moveWithCollision ent totalMovement maze = helperFunction updatedEnt steps
     let moveEntity = moveStep entity stepSize -- move a small step
      in case checkEntCollision checkWall moveEntity 0.5 maze of -- if no collision do one more step, if collision return entity
           Nothing -> helperFunction moveEntity (n - 1)
-          Just x -> x
+          Just x  -> x
 
 checkEntCollision ::
   (Entity -> Tile -> Maybe Entity) -> Entity -> Float -> Maze -> Maybe Entity
 checkEntCollision f ent ran maze =
   case Map.lookup (getTilePos (x, y)) maze of
-    Nothing -> Nothing
+    Nothing   -> Nothing
     Just tile -> f ent tile
  where
   (x, y) = getNextPos ent ran
@@ -112,11 +112,11 @@ getNextPos ent ran = (x', y')
   dir = (direction . movement) ent
   (x, y) = (position . movement) ent
   (x', y') = nPos dir
-  nPos Model.Entities.Up = (fromIntegral @Int (round x), y + ran)
-  nPos Model.Entities.Left = (x - ran, fromIntegral @Int (round y))
+  nPos Model.Entities.Up    = (fromIntegral @Int (round x), y + ran)
+  nPos Model.Entities.Left  = (x - ran, fromIntegral @Int (round y))
   nPos Model.Entities.Right = (x + ran, fromIntegral @Int (round y))
-  nPos Model.Entities.Down = (fromIntegral @Int (round x), y - ran)
-  nPos _ = (x, y)
+  nPos Model.Entities.Down  = (fromIntegral @Int (round x), y - ran)
+  nPos _                    = (x, y)
 
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
@@ -153,19 +153,19 @@ testPlayer =
 checkConsumable :: GameState -> Player -> Maze -> GameState
 checkConsumable state player maze =
   case Map.lookup (getTilePos (x, y)) maze of -- check inplace
-    Nothing -> state
+    Nothing   -> state
     Just tile -> handleConsumable state player tile
  where
   (x, y) = (position . movement . entity) player
 
 retrieveConsumable' :: Tile -> Maybe ConsumableType
 retrieveConsumable' (MkFloor (MkConsumable cons)) = Just cons
-retrieveConsumable' _ = Nothing
+retrieveConsumable' _                             = Nothing
 
 handleConsumable :: GameState -> Player -> Tile -> GameState
 handleConsumable state player tile = case retrieveConsumable' tile of
   Just cType -> handleConsumable' state tilePos cType
-  _ -> state -- update score etc.
+  _          -> state -- update score etc.
  where
   tilePos = getTilePos $ (position . movement . entity) player
 
@@ -178,6 +178,6 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
 
 -- update with the correct values
 updateScore :: ConsumableType -> Player -> Player
-updateScore Pellet player = player{score = score player + 10}
+updateScore Pellet player      = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
-updateScore Cherry player = player{score = score player + 100}
+updateScore Cherry player      = player{score = score player + 100}

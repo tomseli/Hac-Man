@@ -1,7 +1,7 @@
 module Model.CustomMaze where
 
-import qualified Data.Map as Map
-import Model.Maze
+import qualified Data.Map   as Map
+import           Model.Maze
 
 -- generated using:
 -- python .\scripts\mazebuilder_v2.py .\scripts\data\maze_large.txt -m Model.CustomMaze -o .\src\Model\CustomMaze.hs -i Model.Maze -v

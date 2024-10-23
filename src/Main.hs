@@ -1,14 +1,18 @@
 module Main where
 
-import Controller.Controller
-import Controller.EntityController
-import qualified Data.Map as Map
-import qualified Graphics.Gloss as Gloss
+import           Controller.Controller
+import           Controller.EntityController
+
+import qualified Data.Map                         as Map
+
+import qualified Graphics.Gloss                   as Gloss
 import qualified Graphics.Gloss.Interface.IO.Game as GlossIO
-import Model.CustomMaze
-import Model.Model
-import View.RenderMaze
-import View.View
+
+import           Model.CustomMaze
+import           Model.Model
+
+import           View.RenderMaze
+import           View.View
 
 -- needed when opening in windowed mode
 -- import View.Transform

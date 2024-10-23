@@ -1,10 +1,13 @@
 module View.RenderMaze where
 
-import qualified Data.Map as Map
+import qualified Data.Map       as Map
+
 import qualified Graphics.Gloss as Gloss
-import Model.Maze
-import Model.Model
-import View.Transform
+
+import           Model.Maze
+import           Model.Model
+
+import           View.Transform
 
 ----------------------------------------------------------------------------------
 -- Used in main to load the sprites
@@ -51,7 +54,7 @@ renderTile pos (MkFloor t) mSprites = translateSprite pos (renderFloor t mSprite
 
 renderWall :: WallShape -> Sprites -> Sprite
 renderWall (MkWallShape orient) mSprites = renderWallStraight orient mSprites
-renderWall (MkCorner orient) mSprites = renderWallCorner orient mSprites
+renderWall (MkCorner orient) mSprites    = renderWallCorner orient mSprites
 
 renderWallStraight :: WallOrientation -> Sprites -> Sprite
 renderWallStraight Horizontal mSprites = mSprites Map.! "straigtWall" -- default
@@ -64,13 +67,13 @@ renderWallCorner SW mSprites = Gloss.rotate 0 $ mSprites Map.! "cornerWall" -- d
 renderWallCorner NW mSprites = Gloss.rotate 90 $ mSprites Map.! "cornerWall"
 
 renderFloor :: FloorType -> Sprites -> Sprite
-renderFloor EmptyTile _ = Gloss.Blank
+renderFloor EmptyTile _               = Gloss.Blank
 renderFloor (MkConsumable c) mSprites = renderConsumable c mSprites
 
 renderConsumable :: ConsumableType -> Sprites -> Sprite
-renderConsumable Pellet mSprites = mSprites Map.! "pellet"
+renderConsumable Pellet mSprites      = mSprites Map.! "pellet"
 renderConsumable SuperPellet mSprites = mSprites Map.! "superPellet"
-renderConsumable Cherry _ = Gloss.Blank -- TODO
+renderConsumable Cherry _             = Gloss.Blank -- TODO
 
 translateSprite :: TilePosition -> Sprite -> Sprite
 translateSprite (x, y) =
