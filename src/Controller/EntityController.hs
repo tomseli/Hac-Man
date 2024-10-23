@@ -25,7 +25,7 @@ moveStep ent@MkEntity{movement} stepx =
 moveWithCollision :: Entity -> Float -> Maze -> Entity
 moveWithCollision ent totalMovement maze = helperFunction updatedEnt steps
  where
-  stepSize = 0.1 -- around 100 collision checks
+  stepSize = 0.001 -- around 100 collision checks
   steps = floor (totalMovement / stepSize) :: Int -- number of steps to check in between large step
   updatedEnt = checkValidHeading ent maze
   helperFunction entity 0 = entity -- base case
