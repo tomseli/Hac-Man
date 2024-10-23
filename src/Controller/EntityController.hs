@@ -108,15 +108,13 @@ getNextPos (x, y) dir ran = (x', y')
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
-
-
--- checkEntCollision :: (Entity -> Tile -> Maybe Entity) -> Entity -> Float -> Maze -> Maybe Entity
--- checkEntCollision f ent ran maze =
---   case Map.lookup (getTilePos (x, y)) maze of
---     Nothing -> Nothing
---     Just tile -> f ent tile
---  where
---   (x, y) = getNextPos ent ran
+--include a better function for handling a hit
+checkGhosts :: GameState -> GameState
+checkGhosts state@MkGameState{ghosts = xs, player = p}  | hit = state{player = p{lives = (lives p) -1}}
+                                                        | otherwise = state
+    where
+      hit = foldr (\x a -> x == ((position.movement.entity) p) || a ) False ghostspos -- is dit niet gwn any?
+      ghostspos = [snapToGrid((position.movement.entityG) x) | x <- xs] -- get all ghost positions
 
 checkConsumable :: GameState -> Player -> Maze -> GameState
 checkConsumable state player maze =
