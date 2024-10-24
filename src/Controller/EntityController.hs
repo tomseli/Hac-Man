@@ -5,7 +5,6 @@
 module Controller.EntityController where
 
 import qualified Data.Map as Map
-import Data.Sequence (Seq (Empty))
 import Model.Entities
 import Model.Maze
 import Model.Model

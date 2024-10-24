@@ -1,7 +1,6 @@
 module Main where
 
 import Controller.Controller
-import Controller.EntityController
 import Model.Entities
 
 import qualified Data.Map                         as Map
