@@ -13,7 +13,6 @@ import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  print $ show $ pelletC state
   let newState = checkGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
   -- print $ show $ (lives.player) state
@@ -29,10 +28,14 @@ updatePlayer dt state =
   (player state)
     { entity =
         moveWithCollision
-          (entity (player state))
+          (checkValidHeading (entity (player state)) 0.08 (maze state)) --0.15% play in direction change
           ((speed . movement . entity . player) state * dt)
           (maze state)
     }
+
+
+--  updatedEnt = checkValidHeading ent maze
+
 
 updateGhosts :: Float -> GameState -> [Ghost]
 updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]

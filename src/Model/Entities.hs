@@ -43,7 +43,7 @@ ghostEntity =
     { movement =
         MkMovement
           { direction = Model.Entities.Left
-          , speed = 5
+          , speed = 4
           , position = (27, -2)
           , heading = Model.Entities.Left
           }
@@ -65,7 +65,7 @@ pacmanEntity =
     { movement =
         MkMovement
           { direction = Still
-          , speed = 8
+          , speed = 6
           , position = (2, -2)
           , heading = Still
           }
