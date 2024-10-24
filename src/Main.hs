@@ -39,10 +39,10 @@ main :: IO ()
 main = do
   -- load sprites into a map of sprites
   sp <- loadActiveSprites
-  pAnim <- loadPlayerAnimation
+  playerAnimation <- loadPlayerAnimation
 
   -- store the new info in state
-  let state = (storeActiveSprites sp . storePlayerAnimation pAnim) initialState
+  let state = (storeActiveSprites sp . storePlayerAnimation playerAnimation) initialState
 
   GlossIO.playIO
     window

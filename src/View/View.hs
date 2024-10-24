@@ -70,6 +70,12 @@ renderPlayer MkPlayer{entity} = renderEntity entity circle
  where
   circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 32)
 
+renderPlayerAnimation :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
+renderPlayerAnimation MkPlayer{entity} _ pic = pic <> renderAnimation entity
+
+renderAnimation :: Entity -> Gloss.Picture
+renderAnimation = undefined
+
 renderPlayerScore :: Player -> Gloss.Picture -> Gloss.Picture
 renderPlayerScore MkPlayer{score} pic =
   pic
