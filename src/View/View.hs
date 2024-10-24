@@ -18,6 +18,7 @@ import           Prelude                     hiding (Left, Right)
 
 import           View.RenderMaze
 import           View.Transform
+import View.EntityAnimation
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
@@ -35,7 +36,8 @@ render
         ( renderDebugInfo state
             . renderPause state
             . renderLogo
-            . renderPlayer player maze
+            -- . renderPlayer player maze
+            . renderPlayerAnimation player maze
             . renderBlinky blinky maze
             . renderMaze maze spriteMap
             . renderPlayerScore player
@@ -69,12 +71,6 @@ renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
 renderPlayer MkPlayer{entity} = renderEntity entity circle
  where
   circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 32)
-
-renderPlayerAnimation :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
-renderPlayerAnimation MkPlayer{entity} _ pic = pic <> renderAnimation entity
-
-renderAnimation :: Entity -> Gloss.Picture
-renderAnimation = undefined
 
 renderPlayerScore :: Player -> Gloss.Picture -> Gloss.Picture
 renderPlayerScore MkPlayer{score} pic =

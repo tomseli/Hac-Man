@@ -1,12 +1,17 @@
+{-# LANGUAGE TypeApplications #-}
 module View.Transform where
 
 import qualified Data.Map                    as Map
 import           Data.Maybe
 
 import qualified Graphics.Gloss.Data.Picture as Gloss
+import qualified Graphics.Gloss.Data.Color   as Gloss
 
+import           Model.Entities
 import           Model.Maze
 import           Model.Model
+
+import           Prelude                     hiding (Left, Right)
 
 gameArea :: (Int, Int)
 gameArea = (820, 1024)
@@ -51,3 +56,43 @@ calculateMazeOffset m = (xOffset, yOffset)
   mYOffset = (mY * round (snd tileSize)) `div` 2
   xOffset = fromIntegral $ winXOffset - mXOffset
   yOffset = fromIntegral $ winYOffset - mYOffset
+
+transformToPlayer :: Player -> Gloss.Picture -> Gloss.Picture
+transformToPlayer p = translateToPlayer p . rotateToPlayer p
+
+translateToPlayer :: Player -> Gloss.Picture -> Gloss.Picture
+translateToPlayer
+  MkPlayer{ 
+    entity = MkEntity{ 
+      movement = MkMovement{ 
+        direction = dir, position = (x, y)}}}  =
+    Gloss.translate
+      (x' * fst tileSize + fst tileSize / 2)
+      (y' * snd tileSize - snd tileSize / 2)
+    where
+      (x', y') = case dir of
+        Right -> (x, fromIntegral @Int (round y))
+        Left  -> (x, fromIntegral @Int (round y))
+        Up    -> (fromIntegral @Int (round x), y)
+        Down  -> (fromIntegral @Int (round x), y)
+        _     -> (x, y)
+
+rotateToPlayer :: Player -> Gloss.Picture -> Gloss.Picture
+-- in case of still
+rotateToPlayer MkPlayer{ 
+    entity = MkEntity{ 
+      movement = MkMovement{ 
+        direction = Still}}} _ = 
+          Gloss.color Gloss.yellow (Gloss.ThickCircle 0 25)
+-- in case of movement
+rotateToPlayer MkPlayer{ 
+    entity = MkEntity{ 
+      movement = MkMovement{ 
+        direction = dir}}} pic = 
+          Gloss.rotate deg pic 
+          where 
+            deg = case dir of
+              Right -> 0
+              Down  -> 90
+              Left  -> 180
+              Up    -> 270

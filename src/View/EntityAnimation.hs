@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module View.EntityAnimation where
 
 import           Data.Maybe
@@ -6,7 +7,10 @@ import qualified Graphics.Gloss       as Gloss
 import qualified Graphics.Gloss.Juicy as Juicy
 
 import           Model.Entities
+import           Model.Maze
 import           Model.Model
+
+import           View.Transform
 
 loadPlayerAnimation :: IO [Gloss.Picture]
 loadPlayerAnimation = mapM f (getAnimPathsPNG "assets\\pacman\\frame" 10)
@@ -27,3 +31,11 @@ storePlayerAnimation newAnimation s = s
           { animation = Just newAnimation }
       }
   }
+
+renderPlayerAnimation :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
+renderPlayerAnimation player@MkPlayer{entity} maze pic =
+  pic <> (transformToMaze maze . transformToPlayer player) (renderAnimation entity)
+
+renderAnimation :: Entity -> Gloss.Picture
+renderAnimation MkEntity{animation=(Just xs), animationIdx=idx} = xs !! idx
+renderAnimation MkEntity{animation=Nothing}                     = Gloss.Blank
