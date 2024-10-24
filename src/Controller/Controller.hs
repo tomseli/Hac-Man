@@ -14,7 +14,11 @@ step :: Float -> GameState -> IO GameState
 step dt state = do
   let newState = checkGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
-  checkStatus updateMaze -- checkstate should be last in the pipeline
+  case status state of
+    Running  -> return newState
+    Paused   -> return state 
+    Quitting -> exitSuccess
+    _ -> return newState
 
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =
@@ -57,6 +61,9 @@ handleKeys (Gloss.EventKey key keyState _ _) state
       -- 's' to turn player Right
       (Gloss.Char 'd') ->
         state{player = changeHeadPlayer (player state) Model.Entities.Right}
+      -- 'p' pause the game
+      (Gloss.Char 'p') ->
+        state{status = togglePause state}
       -- 'q' purposely crashes the game
       (Gloss.Char 'q') ->
         error ":("
@@ -69,8 +76,16 @@ handleKeys _ state = state
 toggleDebug :: GameState -> GameState
 toggleDebug state@MkGameState{enableDebug} = state{enableDebug = not enableDebug}
 
-checkStatus :: GameState -> IO GameState
-checkStatus state@MkGameState{status} =
-  case status of
-    Quitting -> exitSuccess
-    _        -> return state
+togglePause :: GameState -> GameStatus
+togglePause MkGameState{status = Paused} = Running
+togglePause MkGameState{status = Running} = Paused
+togglePause _ = Running
+
+
+--deprecated
+-- checkStatus :: GameState -> IO GameState
+-- checkStatus state@MkGameState{status} =
+--   case status of
+--     Quitting -> exitSuccess
+--     Paused -> return state
+--     _ -> return state

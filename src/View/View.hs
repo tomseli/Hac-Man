@@ -33,9 +33,10 @@ render
     return $
       transformPicture wInfo $
         ( renderDebugInfo state
+            . renderPause state
             . renderLogo
             . renderPlayer player maze
-              . renderBlinky blinky maze
+            . renderBlinky blinky maze
             . renderMaze maze spriteMap
             . renderPlayerScore player
         )
@@ -78,6 +79,10 @@ renderPlayerScore MkPlayer{score} pic =
        )
       (Gloss.color Gloss.white (Gloss.text $ show score))
 
+renderPause :: GameState -> Gloss.Picture -> Gloss.Picture
+renderPause MkGameState{status = Paused} pic = renderPaused pic
+renderPause MkGameState{status = _} pic = pic
+
 renderEntity ::
   Entity -> Gloss.Picture -> Maze -> Gloss.Picture -> Gloss.Picture
 renderEntity MkEntity{movement} bmap m pic =
@@ -111,6 +116,14 @@ renderNextPos ent maze =
     , (y * snd tileSize) - (snd tileSize / 2)
     )
 
+renderPaused :: Gloss.Picture -> Gloss.Picture
+renderPaused pic =
+  pic
+    <> renderGameArea (Gloss.makeColor 1 1 1 0.90) 
+    <> (Gloss.color Gloss.white . Gloss.translate 150 (-250))
+        (Gloss.color Gloss.black (Gloss.text "PAUSED"))
+      
+
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =
   pic
@@ -125,7 +138,7 @@ renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [bl
   | debug =
       pic
         <> renderNextPos ((entity . player) state) maze
-        <> renderGameArea
+        <> renderGameArea (Gloss.makeColor 0 1 0 0.15)
         <> renderDebugTimer state
         <> renderDebugBlinky blinky maze
   | otherwise = Gloss.Blank <> pic
@@ -140,9 +153,9 @@ renderDebugTimer MkGameState{elapsedTime = time} =
   )
     $ Gloss.text (show time)
 
-renderGameArea :: Gloss.Picture
-renderGameArea =
-  Gloss.color (Gloss.makeColor 0 1 0 0.15) $
+renderGameArea :: Gloss.Color ->Gloss.Picture
+renderGameArea color =
+  Gloss.color color $ --Gloss.makeColor 0 1 0 0.15
     Gloss.polygon [(0, 0), (x, 0), (x, -y), (0, -y)]
  where
   x = fromIntegral $ fst gameArea
