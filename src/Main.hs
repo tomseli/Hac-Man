@@ -1,14 +1,15 @@
 module Main where
 
-import Controller.Controller
-import Model.Entities
+import           Controller.Controller
+import           Controller.EntityController
 
 import qualified Data.Map                         as Map
 
-import qualified Graphics.Gloss as Gloss
+import qualified Graphics.Gloss                   as Gloss
 import qualified Graphics.Gloss.Interface.IO.Game as GlossIO
 
 import           Model.CustomMaze
+import           Model.Entities
 import           Model.Model
 
 import           View.RenderMaze
@@ -32,6 +33,7 @@ initialState x =
     , windowInfo = MkWindowInfo (0, 0)
     , player = initiatePlayer
     , ghosts = [initiateblinky]
+    , pelletC = cntPellets customMaze
     }
 
 main :: IO ()

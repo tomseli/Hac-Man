@@ -19,9 +19,9 @@ data BehaviourMode = Chase | Scatter | Frightened | Home
 type Lives = Int
 
 data Entity = MkEntity
-  { movement :: Movement
+  { movement     :: Movement
   , oldDirection :: Direction
-  , alive    :: IsAlive
+  , alive        :: IsAlive
   }
 
 data Player = MkPlayer
@@ -31,10 +31,10 @@ data Player = MkPlayer
   }
 
 data Ghost = MkGhost
-  { entityG :: Entity
-  , ghostName :: GhostType
+  { entityG       :: Entity
+  , ghostName     :: GhostType
   , behaviourMode :: BehaviourMode
-  , targetTile    :: EntityPosition 
+  , targetTile    :: EntityPosition
   }
 
 ghostEntity :: Entity

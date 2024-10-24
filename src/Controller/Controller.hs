@@ -1,8 +1,9 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Controller.Controller where
-import Controller.EntityController
-import Controller.GhostController
+import           Controller.EntityController
+import           Controller.GhostController
+
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss
 
 import           Model.Entities
@@ -12,13 +13,16 @@ import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
+  print $ show $ pelletC state
   let newState = checkGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
+  -- print $ show $ (lives.player) state
+  -- print $ show $ status updateMaze
   case status updateMaze of
     Running  -> return updateMaze
-    Paused   -> return state 
+    Paused   -> return state
     Quitting -> exitSuccess
-    _ -> return updateMaze
+    GameOver -> return state{status = GameOver} --wrm tf moet je de player updaten pls help
 
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =
@@ -31,7 +35,7 @@ updatePlayer dt state =
     }
 
 updateGhosts :: Float -> GameState -> [Ghost]
-updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state] 
+updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]
 
 updateGhost :: Float -> GameState -> Ghost -> Ghost
 updateGhost dt state ghost = ghost {entityG = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)}
@@ -77,9 +81,10 @@ toggleDebug :: GameState -> GameState
 toggleDebug state@MkGameState{enableDebug} = state{enableDebug = not enableDebug}
 
 togglePause :: GameState -> GameStatus
-togglePause MkGameState{status = Paused} = Running
+togglePause MkGameState{status = Paused}  = Running
 togglePause MkGameState{status = Running} = Paused
-togglePause _ = Running
+togglePause _                             = Running
+
 
 
 --deprecated

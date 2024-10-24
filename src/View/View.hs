@@ -33,15 +33,25 @@ render
     return $
       transformPicture wInfo $
         ( renderDebugInfo state
-            . renderPause state
+            . renderStatus state
             . renderLogo
             . renderPlayer player maze
             . renderBlinky blinky maze
             . renderMaze maze spriteMap
             . renderPlayerScore player
+            . renderPlayerHealth player
         )
           Gloss.Blank
 render _ = return Gloss.Blank
+
+renderPlayerHealth :: Player -> Gloss.Picture -> Gloss.Picture
+renderPlayerHealth MkPlayer{lives} pic =
+  pic
+    <> ( Gloss.color Gloss.white
+          . Gloss.translate 600 (-100)
+          . Gloss.scale 0.25 0.25
+       )
+      (Gloss.color Gloss.white (Gloss.text $ show lives))
 
 renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
 renderBlinky MkGhost{entityG} = renderEntity entityG circle
@@ -79,9 +89,10 @@ renderPlayerScore MkPlayer{score} pic =
        )
       (Gloss.color Gloss.white (Gloss.text $ show score))
 
-renderPause :: GameState -> Gloss.Picture -> Gloss.Picture
-renderPause MkGameState{status = Paused} pic = renderPaused pic
-renderPause MkGameState{status = _} pic = pic
+renderStatus :: GameState -> Gloss.Picture -> Gloss.Picture
+renderStatus MkGameState{status = GameOver} pic = renderGameOver pic
+renderStatus MkGameState{status = Paused} pic   = renderPaused pic
+renderStatus MkGameState{status = _} pic        = pic
 
 renderEntity ::
   Entity -> Gloss.Picture -> Maze -> Gloss.Picture -> Gloss.Picture
@@ -119,10 +130,19 @@ renderNextPos ent maze =
 renderPaused :: Gloss.Picture -> Gloss.Picture
 renderPaused pic =
   pic
-    <> renderGameArea (Gloss.makeColor 1 1 1 0.90) 
+    <> renderGameArea (Gloss.makeColor 1 1 1 0.90)
     <> (Gloss.color Gloss.white . Gloss.translate 150 (-250))
         (Gloss.color Gloss.black (Gloss.text "PAUSED"))
-      
+
+
+renderGameOver :: Gloss.Picture -> Gloss.Picture
+renderGameOver pic =
+  pic
+    <> renderGameArea (Gloss.makeColor 1 1 1 0.90)
+    <> (Gloss.color Gloss.white
+        . Gloss.translate 150 (-250)
+        . Gloss.scale 0.50 0.50)
+        (Gloss.color Gloss.black (Gloss.text "Game over"))
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =

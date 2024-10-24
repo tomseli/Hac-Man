@@ -13,7 +13,7 @@ type Sprite = Gloss.Picture
 
 type Sprites = Map.Map Name Sprite
 
-data GameStatus = Running | GameOver | Paused | Quitting deriving Eq
+data GameStatus = Running | GameOver | Paused | Quitting deriving (Eq, Show)
 
 newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 
@@ -23,7 +23,8 @@ data GameState = MkGameState
   , sprites     :: Sprites
   , elapsedTime :: Float
   , enableDebug :: Bool
-  , windowInfo :: WindowInfo
-  , player :: Player
-  , ghosts :: [Ghost]
+  , windowInfo  :: WindowInfo
+  , player      :: Player
+  , ghosts      :: [Ghost]
+  , pelletC     :: Int
   }
