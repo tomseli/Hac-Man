@@ -4,10 +4,11 @@
 
 module Controller.EntityController where
 
-import qualified Data.Map       as Map
-import           Model.Entities
-import           Model.Maze
-import           Model.Model
+import qualified Data.Map as Map
+import Data.Sequence (Seq (Empty))
+import Model.Entities
+import Model.Maze
+import Model.Model
 
 -- should add maze for collision detection?
 moveStep :: Entity -> Float -> Entity
@@ -25,7 +26,7 @@ moveStep ent@MkEntity{movement} stepx =
 moveWithCollision :: Entity -> Float -> Maze -> Entity
 moveWithCollision ent totalMovement maze = helperFunction updatedEnt steps
  where
-  stepSize = 0.1 -- around 100 collision checks
+  stepSize = 0.001 -- around 100 collision checks
   steps = floor (totalMovement / stepSize) :: Int -- number of steps to check in between large step
   updatedEnt = checkValidHeading ent maze
   helperFunction entity 0 = entity -- base case
@@ -43,7 +44,7 @@ checkEntCollision f ent ran maze =
     Nothing   -> Nothing
     Just tile -> f ent tile
  where
-  (x, y) = getNextPos ent ran
+  (x, y) = getNextPos ((position . movement) ent) ((direction . movement) ent) ran
 
 checkWall :: Entity -> Tile -> Maybe Entity
 checkWall ent (MkWall _) =
@@ -56,17 +57,6 @@ checkWall ent (MkWall _) =
       Still
 checkWall _ _ = Nothing
 
-actOnCollision :: Entity -> Tile -> Maybe Entity
-actOnCollision _ (MkFloor EmptyTile) = Nothing
-actOnCollision _ (MkFloor (MkConsumable _)) = undefined
-actOnCollision ent (MkWall _) =
-  Just $
-    changeDirEnt
-      ( ent
-          { movement = (movement ent){position = snapToGrid ((position . movement) ent)}
-          }
-      )
-      Still
 
 changeDirEnt :: Entity -> Direction -> Entity
 changeDirEnt ent dir = ent{movement = (movement ent){direction = dir}}
@@ -76,11 +66,11 @@ changeHeadingEnt ent heading = ent{movement = (movement ent){heading = heading}}
 
 -- could be reused to not change direction, but for the ghost to check next pos
 checkValidHeading :: Entity -> Maze -> Entity
-checkValidHeading ent maze =
+checkValidHeading ent@MkEntity{movement = move} maze =
   let headingDir = (heading . movement) ent
       entity = changeDirEnt ent headingDir
-   in case checkEntCollision checkWall entity 1 maze of
-        Nothing -> if snapToGridApproxEqual (x, y) then changeDirEnt ent headingDir else ent
+   in case checkEntCollision checkWall entity 1.0 maze of
+        Nothing -> if snapToGridApproxEqual (x, y) then changeDirEnt ent{movement = move{position = snapToGrid ((position.movement) ent)}} headingDir else ent
         Just _ -> ent
  where
   (x, y) = (position . movement) ent
@@ -91,7 +81,7 @@ snapToGridApproxEqual (x1, y1) =
   abs (x1 - x2) <= tolerance && abs (y1 - y2) <= tolerance
  where
   (x2, y2) = snapToGrid (x1, y1)
-  tolerance = 0.1 -- 10% tilesize
+  tolerance = 0.08 -- 0.8% tilesize
 
 changeDirPlayer :: Player -> Direction -> Player
 changeDirPlayer player direction = player{entity = updateDirection}
@@ -106,11 +96,9 @@ changeHeadPlayer player direction = player{entity = updateHeading}
 snapToGrid :: EntityPosition -> EntityPosition
 snapToGrid (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round y))
 
-getNextPos :: Entity -> Float -> EntityPosition
-getNextPos ent ran = (x', y')
+getNextPos :: EntityPosition -> Direction -> Float -> EntityPosition
+getNextPos (x, y) dir ran = (x', y')
  where
-  dir = (direction . movement) ent
-  (x, y) = (position . movement) ent
   (x', y') = nPos dir
   nPos Model.Entities.Up    = (fromIntegral @Int (round x), y + ran)
   nPos Model.Entities.Left  = (x - ran, fromIntegral @Int (round y))
@@ -121,34 +109,13 @@ getNextPos ent ran = (x', y')
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
-testEntity :: Entity
-testEntity =
-  MkEntity
-    { movement =
-        MkMovement
-          { direction = Still
-          , speed = 8
-          , position = (2, -2)
-          , heading = Still
-          }
-    , alive = Alive
-    }
-
-testPlayer :: Player
-testPlayer =
-  MkPlayer
-    { entity = testEntity
-    , lives = 3
-    , score = 0
-    }
-
--- checkEntCollision :: (Entity -> Tile -> Maybe Entity) -> Entity -> Float -> Maze -> Maybe Entity
--- checkEntCollision f ent ran maze =
---   case Map.lookup (getTilePos (x, y)) maze of
---     Nothing -> Nothing
---     Just tile -> f ent tile
---  where
---   (x, y) = getNextPos ent ran
+--include a better function for handling a hit
+checkGhosts :: GameState -> GameState
+checkGhosts state@MkGameState{ghosts = xs, player = p}  | hit = state{player = p{lives = lives p -1}}
+                                                        | otherwise = state
+    where
+      hit = foldr (\x a -> x == (position.movement.entity) p || a ) False ghostspos -- is dit niet gwn any?
+      ghostspos = [snapToGrid ((position.movement.entityG) x) | x <- xs] -- get all ghost positions
 
 checkConsumable :: GameState -> Player -> Maze -> GameState
 checkConsumable state player maze =
@@ -163,9 +130,10 @@ retrieveConsumable' (MkFloor (MkConsumable cons)) = Just cons
 retrieveConsumable' _                             = Nothing
 
 handleConsumable :: GameState -> Player -> Tile -> GameState
-handleConsumable state player tile = case retrieveConsumable' tile of
-  Just cType -> handleConsumable' state tilePos cType
-  _          -> state -- update score etc.
+handleConsumable state player tile =
+  case retrieveConsumable' tile of
+    Just cType -> handleConsumable' state tilePos cType
+    _ -> state -- update score etc.
  where
   tilePos = getTilePos $ (position . movement . entity) player
 
@@ -178,6 +146,6 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
 
 -- update with the correct values
 updateScore :: ConsumableType -> Player -> Player
-updateScore Pellet player      = player{score = score player + 10}
+updateScore Pellet player = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
-updateScore Cherry player      = player{score = score player + 100}
+updateScore Cherry player = player{score = score player + 100}

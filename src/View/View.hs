@@ -28,16 +28,39 @@ render
     , player = player
     , maze = maze
     , sprites = spriteMap
+    , ghosts = [blinky]
     } =
     return $
       transformPicture wInfo $
         ( renderDebugInfo state
             . renderLogo
             . renderPlayer player maze
+              . renderBlinky blinky maze
             . renderMaze maze spriteMap
             . renderPlayerScore player
         )
           Gloss.Blank
+render _ = return Gloss.Blank
+
+renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
+renderBlinky MkGhost{entityG} = renderEntity entityG circle
+ where
+  circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
+
+renderDebugBlinky :: Ghost -> Maze -> Gloss.Picture
+renderDebugBlinky ghost = renderTargetTile (targetTile ghost) circle
+ where
+  circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 16)
+
+renderTargetTile ::
+  EntityPosition -> Gloss.Picture -> Maze -> Gloss.Picture
+renderTargetTile (x, y) bmap m  = transformToMaze
+      m
+      ( Gloss.translate
+          ((x * fst tileSize) + (fst tileSize / 2))
+          ((y * snd tileSize) - (snd tileSize / 2))
+          bmap
+      )
 
 -- Add a bitmap (Add, when making the renderEntity)
 -- note this is eta reduced to hell and back
@@ -82,7 +105,7 @@ renderNextPos ent maze =
     Gloss.translate x' y' $
       Gloss.color Gloss.blue (Gloss.ThickCircle 0 15)
  where
-  (x, y) = getNextPos ent 0.1
+  (x, y) = getNextPos ((position . movement) ent) ((direction . movement) ent) 0.1
   (x', y') =
     ( (x * fst tileSize) + (fst tileSize / 2)
     , (y * snd tileSize) - (snd tileSize / 2)
@@ -98,13 +121,16 @@ renderLogo pic =
       (Gloss.color Gloss.yellow (Gloss.text "PACMAN"))
 
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
-renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze} pic
+renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky]} pic
   | debug =
       pic
         <> renderNextPos ((entity . player) state) maze
         <> renderGameArea
         <> renderDebugTimer state
+        <> renderDebugBlinky blinky maze
   | otherwise = Gloss.Blank <> pic
+renderDebugInfo _ _ =  Gloss.Blank
+
 
 renderDebugTimer :: GameState -> Gloss.Picture
 renderDebugTimer MkGameState{elapsedTime = time} =

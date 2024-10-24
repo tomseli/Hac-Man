@@ -23,6 +23,7 @@ data GameState = MkGameState
   , sprites     :: Sprites
   , elapsedTime :: Float
   , enableDebug :: Bool
-  , windowInfo  :: WindowInfo
-  , player      :: Player
+  , windowInfo :: WindowInfo
+  , player :: Player
+  , ghosts :: [Ghost]
   }
