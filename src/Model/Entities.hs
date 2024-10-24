@@ -1,4 +1,7 @@
 module Model.Entities where
+
+import qualified Graphics.Gloss as Gloss
+
 data IsAlive = Alive | Dead
 
 data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
@@ -19,9 +22,11 @@ data BehaviourMode = Chase | Scatter | Frightened | Home
 type Lives = Int
 
 data Entity = MkEntity
-  { movement :: Movement
+  { movement     :: Movement
   , oldDirection :: Direction
-  , alive    :: IsAlive
+  , alive        :: IsAlive
+  , animation    :: Maybe [Gloss.Picture]
+  , animationIdx :: Int
   }
 
 data Player = MkPlayer
@@ -31,10 +36,10 @@ data Player = MkPlayer
   }
 
 data Ghost = MkGhost
-  { entityG :: Entity
-  , ghostName :: GhostType
+  { entityG       :: Entity
+  , ghostName     :: GhostType
   , behaviourMode :: BehaviourMode
-  , targetTile    :: EntityPosition 
+  , targetTile    :: EntityPosition
   }
 
 ghostEntity :: Entity
@@ -47,6 +52,8 @@ ghostEntity =
           , position = (27, -2)
           , heading = Model.Entities.Left
           }
+    , animation = Nothing
+    , animationIdx = 0
     , alive = Alive
     , oldDirection = Still
     }
@@ -69,6 +76,8 @@ pacmanEntity =
           , position = (2, -2)
           , heading = Still
           }
+          , animation = Nothing
+    , animationIdx = 0
     , alive = Alive
     , oldDirection = Still
     }

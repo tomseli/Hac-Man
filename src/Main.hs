@@ -1,16 +1,17 @@
 module Main where
 
-import Controller.Controller
-import Model.Entities
+import           Controller.Controller
 
 import qualified Data.Map                         as Map
 
-import qualified Graphics.Gloss as Gloss
+import qualified Graphics.Gloss                   as Gloss
 import qualified Graphics.Gloss.Interface.IO.Game as GlossIO
 
 import           Model.CustomMaze
+import           Model.Entities
 import           Model.Model
 
+import           View.EntityAnimation
 import           View.RenderMaze
 import           View.View
 
@@ -21,12 +22,12 @@ window :: Gloss.Display
 -- window = InWindow "Hac-Man" gameArea (0, 0)
 window = Gloss.FullScreen
 
-initialState :: Map.Map Name Sprite -> GameState
-initialState x =
+initialState :: GameState
+initialState =
   MkGameState
     { status = Running
     , maze = customMaze
-    , sprites = x
+    , sprites = Map.empty
     , elapsedTime = 0
     , enableDebug = True
     , windowInfo = MkWindowInfo (0, 0)
@@ -38,13 +39,16 @@ main :: IO ()
 main = do
   -- load sprites into a map of sprites
   sp <- loadActiveSprites
-  let spriteMap = storeActiveSprites sp
+  pAnim <- loadPlayerAnimation
+
+  -- store the new info in state
+  let state = (storeActiveSprites sp . storePlayerAnimation pAnim) initialState
 
   GlossIO.playIO
     window
     Gloss.black
     60
-    (initialState spriteMap)
+    state
     render
     eventHandler
     step

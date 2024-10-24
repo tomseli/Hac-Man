@@ -32,8 +32,8 @@ activeSpritesPaths =
   , ("superPellet", "assets\\super_pellet.bmp")
   ]
 
-storeActiveSprites :: [(Name, Sprite)] -> Map.Map Name Sprite
-storeActiveSprites = foldr f Map.empty
+storeActiveSprites :: [(Name, Sprite)] -> GameState -> GameState
+storeActiveSprites xs state = state{sprites=foldr f Map.empty xs}
  where
   f (name, sprite) = Map.insert name sprite
 
