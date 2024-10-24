@@ -14,11 +14,11 @@ step :: Float -> GameState -> IO GameState
 step dt state = do
   let newState = checkGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
-  case status state of
-    Running  -> return newState
+  case status updateMaze of
+    Running  -> return updateMaze
     Paused   -> return state 
     Quitting -> exitSuccess
-    _ -> return newState
+    _ -> return updateMaze
 
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =

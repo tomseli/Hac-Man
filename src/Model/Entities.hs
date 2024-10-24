@@ -43,7 +43,7 @@ ghostEntity =
     { movement =
         MkMovement
           { direction = Model.Entities.Left
-          , speed = 6
+          , speed = 5
           , position = (27, -2)
           , heading = Model.Entities.Left
           }
