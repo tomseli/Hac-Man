@@ -43,12 +43,12 @@ main = do
   blinkyAnimation <- loadBlinkyAnimation
 
   -- store the new info in state
-  let 
-    state = 
-      (storeActiveSprites sp 
-      . storePlayerAnimation playerAnimation 
+  let
+    state =
+      (storeActiveSprites sp
+      . storePlayerAnimation playerAnimation
       . storeGhostAnimation [blinkyAnimation]
-      ) 
+      )
       initialState
 
   GlossIO.playIO

@@ -58,12 +58,12 @@ updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (gho
 
 -- same not as updatePlayer
 updateGhost :: Float -> GameState -> Ghost -> Ghost
-updateGhost dt state ghost = 
-  let 
+updateGhost dt state ghost =
+  let
     movedGhost = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)
     newAnimation = fmap (`updateAnimation` state) (animation movedGhost)
     updatedEntity = movedGhost { animation = newAnimation }
-  in 
+  in
     ghost {entityG = updatedEntity}
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState

@@ -1,6 +1,7 @@
 module Model.CustomMaze where
 
 import qualified Data.Map   as Map
+
 import           Model.Maze
 
 -- generated using:

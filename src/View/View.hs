@@ -16,9 +16,9 @@ import           Model.Model
 
 import           Prelude                     hiding (Left, Right)
 
+import           View.EntityAnimation
 import           View.RenderMaze
 import           View.Transform
-import View.EntityAnimation
 
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
@@ -45,7 +45,7 @@ render
         )
           Gloss.Blank
 
--- depricated
+-- deprecated
 -- renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
 -- renderBlinky MkGhost{entityG} = renderEntity entityG circle
 --  where
@@ -70,7 +70,7 @@ renderTargetTile (x, y) bmap m  = transformToMaze
           bmap
       )
 
--- depricated
+-- deprecated
 -- renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
 -- renderPlayer MkPlayer{entity} = renderEntity entity circle
 --  where
@@ -87,7 +87,7 @@ renderPlayerScore MkPlayer{score} pic =
 
 renderPause :: GameState -> Gloss.Picture -> Gloss.Picture
 renderPause MkGameState{status = Paused} pic = renderPaused pic
-renderPause MkGameState{status = _} pic = pic
+renderPause MkGameState{status = _} pic      = pic
 
 renderEntity ::
   Entity -> Gloss.Picture -> Maze -> Gloss.Picture -> Gloss.Picture
@@ -125,10 +125,10 @@ renderNextPos ent maze =
 renderPaused :: Gloss.Picture -> Gloss.Picture
 renderPaused pic =
   pic
-    <> renderGameArea (Gloss.makeColor 1 1 1 0.90) 
+    <> renderGameArea (Gloss.makeColor 1 1 1 0.90)
     <> (Gloss.color Gloss.white . Gloss.translate 150 (-250))
         (Gloss.color Gloss.black (Gloss.text "PAUSED"))
-      
+
 
 renderLogo :: Gloss.Picture -> Gloss.Picture
 renderLogo pic =

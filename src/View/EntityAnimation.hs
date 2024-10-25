@@ -18,7 +18,7 @@ loadPlayerAnimation = loadAnimation "assets\\pacman\\frame" 10
 
 loadBlinkyAnimation :: IO [Gloss.Picture]
 loadBlinkyAnimation = loadAnimation "assets\\blinky\\frame" 2
- 
+
 loadAnimation :: FilePath -> Int -> IO [Gloss.Picture]
 loadAnimation path n = mapM f (getAnimPathsPNG path n)
   where
@@ -46,7 +46,7 @@ storePlayerAnimation newAnimation s = s
   }
 
 storeGhostAnimation :: [[Gloss.Picture]] -> GameState -> GameState
-storeGhostAnimation newAnimations s = 
+storeGhostAnimation newAnimations s =
   s { ghosts = zipWith updateGhostAnimation (ghosts s) newAnimations }
   where
     updateGhostAnimation ghost frames = ghost
@@ -64,8 +64,6 @@ renderPlayerAnimation :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
 renderPlayerAnimation player@MkPlayer{entity} maze pic =
   pic <> (transformToMaze maze . transformToPlayer player) (renderAnimation (animation entity))
 
--- TODO: properly snap to ghost position and direction
--- likely make some transformToGhost thingymabob 
 renderGhostAnimation :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
 renderGhostAnimation ghost@MkGhost{entityG} maze pic =
   pic <> (transformToMaze maze . transformToGhost ghost) (renderAnimation (animation entityG))

@@ -4,10 +4,11 @@
 
 module Controller.EntityController where
 
-import qualified Data.Map as Map
-import Model.Entities
-import Model.Maze
-import Model.Model
+import qualified Data.Map       as Map
+
+import           Model.Entities
+import           Model.Maze
+import           Model.Model
 
 -- should add maze for collision detection?
 moveStep :: Entity -> Float -> Entity
@@ -132,7 +133,7 @@ handleConsumable :: GameState -> Player -> Tile -> GameState
 handleConsumable state player tile =
   case retrieveConsumable' tile of
     Just cType -> handleConsumable' state tilePos cType
-    _ -> state -- update score etc.
+    _          -> state -- update score etc.
  where
   tilePos = getTilePos $ (position . movement . entity) player
 
@@ -145,6 +146,6 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
 
 -- update with the correct values
 updateScore :: ConsumableType -> Player -> Player
-updateScore Pellet player = player{score = score player + 10}
+updateScore Pellet player      = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
-updateScore Cherry player = player{score = score player + 100}
+updateScore Cherry player      = player{score = score player + 100}

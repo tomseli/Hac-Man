@@ -26,7 +26,7 @@ data Animation = MkAnimation
   , index      :: Int
   , rate       :: Float
   , lastUpdate :: Float
-  } 
+  }
 
 data Entity = MkEntity
   { movement     :: Movement
