@@ -17,7 +17,7 @@ step dt state = do
   let updateMaze = checkConsumable newState (player state) (maze state)
   -- print $ show $ (lives.player) state
   -- print $ show $ status updateMaze
-  print $ show $ behaviourMode (head $ ghosts state)
+  -- print $ show $ behaviourMode (head $ ghosts state)
   -- print $ "elapsedTime = " ++  show ( elapsedTime state)
   -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
   -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
