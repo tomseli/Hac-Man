@@ -1,8 +1,9 @@
 {-# LANGUAGE NamedFieldPuns #-}
-
 module Controller.Controller where
-import Controller.EntityController
-import Controller.GhostController
+
+import           Controller.EntityController
+import           Controller.GhostController
+
 import qualified Graphics.Gloss.Interface.IO.Game as Gloss
 
 import           Model.Entities
@@ -12,26 +13,48 @@ import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let newState = checkGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
-  let updateMaze = checkConsumable newState (player state) (maze state)
+  let newState = checkGhosts $ state{
+    elapsedTime = elapsedTime state + dt,
+    player = updatePlayer dt state,
+    ghosts = updateGhosts dt state}
+      updateMaze = checkConsumable newState (player state) (maze state)
   case status updateMaze of
     Running  -> return updateMaze
-    Paused   -> return state 
+    Paused   -> return state
     Quitting -> exitSuccess
-    _ -> return updateMaze
+    _        -> return updateMaze
 
+-- TODO: This function is horrible and difficult to expand
+-- see if we can make this better
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =
-  (player state)
-    { entity =
-        moveWithCollision
-          (entity (player state))
-          ((speed . movement . entity . player) state * dt)
-          (maze state)
-    }
+  let
+    updatedEntity = updateMovement dt state
+    finalEntity = updateAnimation updatedEntity state
+  in
+    (player state) { entity = finalEntity }
+
+-- 0.033 makes for ~30 fps, the animation speed
+updateAnimation :: Entity -> GameState -> Entity
+updateAnimation
+  ent@MkEntity{animationLastUpdate=lt, animationIdx=idx, animation=anim}
+  MkGameState{elapsedTime=t} | t - lt > 0.033 = ent{ animationLastUpdate=t
+                                                   , animationIdx=(idx + 1) `mod` len anim
+                                                   }
+                             | otherwise      = ent
+    where   
+      len Nothing   = 1 -- updating the animationIdx for a entity without anim frames does nothing
+      len (Just xs) = length  xs
+
+updateMovement :: Float -> GameState -> Entity
+updateMovement dt state =
+  moveWithCollision
+    (entity (player state))
+    ((speed . movement . entity . player) state * dt)
+    (maze state)
 
 updateGhosts :: Float -> GameState -> [Ghost]
-updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state] 
+updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]
 
 updateGhost :: Float -> GameState -> Ghost -> Ghost
 updateGhost dt state ghost = ghost {entityG = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)}
@@ -77,9 +100,9 @@ toggleDebug :: GameState -> GameState
 toggleDebug state@MkGameState{enableDebug} = state{enableDebug = not enableDebug}
 
 togglePause :: GameState -> GameStatus
-togglePause MkGameState{status = Paused} = Running
+togglePause MkGameState{status = Paused}  = Running
 togglePause MkGameState{status = Running} = Paused
-togglePause _ = Running
+togglePause _                             = Running
 
 
 --deprecated
