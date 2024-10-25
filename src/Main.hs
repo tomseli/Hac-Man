@@ -40,9 +40,16 @@ main = do
   -- load sprites into a map of sprites
   sp <- loadActiveSprites
   playerAnimation <- loadPlayerAnimation
+  blinkyAnimation <- loadBlinkyAnimation
 
   -- store the new info in state
-  let state = (storeActiveSprites sp . storePlayerAnimation playerAnimation) initialState
+  let 
+    state = 
+      (storeActiveSprites sp 
+      . storePlayerAnimation playerAnimation 
+      . storeGhostAnimation [blinkyAnimation]
+      ) 
+      initialState
 
   GlossIO.playIO
     window

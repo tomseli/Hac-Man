@@ -21,13 +21,18 @@ data BehaviourMode = Chase | Scatter | Frightened | Home
 
 type Lives = Int
 
+data Animation = MkAnimation
+  { frames     :: [Gloss.Picture]
+  , index      :: Int
+  , rate       :: Float
+  , lastUpdate :: Float
+  } 
+
 data Entity = MkEntity
-  { movement            :: Movement
-  , oldDirection        :: Direction
-  , alive               :: IsAlive
-  , animation           :: Maybe [Gloss.Picture]
-  , animationIdx        :: Int
-  , animationLastUpdate :: Float
+  { movement     :: Movement
+  , oldDirection :: Direction
+  , alive        :: IsAlive
+  , animation    :: Maybe Animation
   }
 
 data Player = MkPlayer
@@ -54,11 +59,10 @@ ghostEntity =
           , heading = Model.Entities.Left
           }
     , animation = Nothing
-    , animationIdx = 0
-    , animationLastUpdate = 0
     , alive = Alive
     , oldDirection = Still
     }
+
 initiateblinky :: Ghost
 initiateblinky =
   MkGhost
@@ -78,9 +82,7 @@ pacmanEntity =
           , position = (2, -2)
           , heading = Still
           }
-          , animation = Nothing
-    , animationIdx = 0
-    , animationLastUpdate = 0
+          , animation = Nothing -- animations are added later
     , alive = Alive
     , oldDirection = Still
     }

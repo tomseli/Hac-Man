@@ -29,7 +29,7 @@ render
     , player = player
     , maze = maze
     , sprites = spriteMap
-    , ghosts = [blinky]
+    , ghosts = ghosts
     } =
     return $
       transformPicture wInfo $
@@ -38,17 +38,21 @@ render
             . renderLogo
             -- . renderPlayer player maze
             . renderPlayerAnimation player maze
-            . renderBlinky blinky maze
+            -- . renderBlinky blinky maze
+            . renderGhosts ghosts maze
             . renderMaze maze spriteMap
             . renderPlayerScore player
         )
           Gloss.Blank
-render _ = return Gloss.Blank
 
 renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
 renderBlinky MkGhost{entityG} = renderEntity entityG circle
  where
   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
+
+renderGhosts :: [Ghost] -> Maze -> Gloss.Picture -> Gloss.Picture
+renderGhosts xs m pic = pic <> foldr f Gloss.blank xs
+  where f x = renderGhostAnimation x m
 
 renderDebugBlinky :: Ghost -> Maze -> Gloss.Picture
 renderDebugBlinky ghost = renderTargetTile (targetTile ghost) circle
@@ -65,8 +69,6 @@ renderTargetTile (x, y) bmap m  = transformToMaze
           bmap
       )
 
--- Add a bitmap (Add, when making the renderEntity)
--- note this is eta reduced to hell and back
 renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
 renderPlayer MkPlayer{entity} = renderEntity entity circle
  where

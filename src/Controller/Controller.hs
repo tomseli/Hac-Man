@@ -13,38 +13,38 @@ import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let newState = checkGhosts $ state{
-    elapsedTime = elapsedTime state + dt,
-    player = updatePlayer dt state,
-    ghosts = updateGhosts dt state}
-      updateMaze = checkConsumable newState (player state) (maze state)
+  let newState = checkGhosts $ state{ elapsedTime = elapsedTime state + dt
+                                    , player      = updatePlayer dt state
+                                    , ghosts      = updateGhosts dt state
+                                    }
+  let updateMaze = checkConsumable newState (player state) (maze state)
   case status updateMaze of
     Running  -> return updateMaze
     Paused   -> return state
     Quitting -> exitSuccess
     _        -> return updateMaze
 
--- TODO: This function is horrible and difficult to expand
+-- TODO: This function is difficult to expand
 -- see if we can make this better
 updatePlayer :: Float -> GameState -> Player
 updatePlayer dt state =
   let
     updatedEntity = updateMovement dt state
-    finalEntity = updateAnimation updatedEntity state
+    finalEntity = case animation updatedEntity of
+      (Just anim) -> updatedEntity{ animation = Just (updateAnimation anim state) }
+      Nothing     -> updatedEntity
   in
     (player state) { entity = finalEntity }
 
--- 0.033 makes for ~30 fps, the animation speed
-updateAnimation :: Entity -> GameState -> Entity
-updateAnimation
-  ent@MkEntity{animationLastUpdate=lt, animationIdx=idx, animation=anim}
-  MkGameState{elapsedTime=t} | t - lt > 0.033 = ent{ animationLastUpdate=t
-                                                   , animationIdx=(idx + 1) `mod` len anim
-                                                   }
-                             | otherwise      = ent
-    where   
-      len Nothing   = 1 -- updating the animationIdx for a entity without anim frames does nothing
-      len (Just xs) = length  xs
+updateAnimation :: Animation -> GameState -> Animation
+updateAnimation anim s
+  | elapsedTime s - lastUpdate anim > (1 / rate anim) = anim{ lastUpdate = elapsedTime s
+                                                            , index = nextIndex
+                                                            }
+  | otherwise = anim
+    where
+      nextIndex = (index anim + 1) `mod` len
+      len = length (frames anim)
 
 updateMovement :: Float -> GameState -> Entity
 updateMovement dt state =
@@ -56,8 +56,15 @@ updateMovement dt state =
 updateGhosts :: Float -> GameState -> [Ghost]
 updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]
 
+-- same not as updatePlayer
 updateGhost :: Float -> GameState -> Ghost -> Ghost
-updateGhost dt state ghost = ghost {entityG = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)}
+updateGhost dt state ghost = 
+  let 
+    movedGhost = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)
+    newAnimation = fmap (`updateAnimation` state) (animation movedGhost)
+    updatedEntity = movedGhost { animation = newAnimation }
+  in 
+    ghost {entityG = updatedEntity}
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state

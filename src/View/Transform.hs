@@ -57,15 +57,17 @@ calculateMazeOffset m = (xOffset, yOffset)
   xOffset = fromIntegral $ winXOffset - mXOffset
   yOffset = fromIntegral $ winYOffset - mYOffset
 
-transformToPlayer :: Player -> Gloss.Picture -> Gloss.Picture
-transformToPlayer p = translateToPlayer p . rotateToPlayer p
+transformToGhost :: Ghost -> Gloss.Picture -> Gloss.Picture
+transformToGhost g = transformToEntity (entityG g) . rotateToGhost g
 
-translateToPlayer :: Player -> Gloss.Picture -> Gloss.Picture
-translateToPlayer
-  MkPlayer{ 
-    entity = MkEntity{ 
-      movement = MkMovement{ 
-        direction = dir, position = (x, y)}}}  =
+transformToPlayer :: Player -> Gloss.Picture -> Gloss.Picture
+transformToPlayer p = transformToEntity (entity p) . rotateToPlayer p
+
+transformToEntity :: Entity -> Gloss.Picture -> Gloss.Picture
+transformToEntity 
+  MkEntity{ 
+    movement = MkMovement{ 
+      direction = dir, position = (x, y)}} = 
     Gloss.translate
       (x' * fst tileSize + fst tileSize / 2)
       (y' * snd tileSize - snd tileSize / 2)
@@ -96,3 +98,17 @@ rotateToPlayer MkPlayer{
               Down  -> 90
               Left  -> 180
               Up    -> 270
+
+-- for now there's only two states, left or right
+-- no animations available for up and down
+rotateToGhost :: Ghost -> Gloss.Picture -> Gloss.Picture
+rotateToGhost 
+  MkGhost{
+    entityG = MkEntity{
+      movement = MkMovement{
+        direction = dir}}} = Gloss.scale x 1
+          where 
+            x = case dir of
+                  Right -> -1
+                  Down  -> -1
+                  _     ->  1
