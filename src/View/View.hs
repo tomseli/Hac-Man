@@ -45,10 +45,11 @@ render
         )
           Gloss.Blank
 
-renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
-renderBlinky MkGhost{entityG} = renderEntity entityG circle
- where
-  circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
+-- depricated
+-- renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
+-- renderBlinky MkGhost{entityG} = renderEntity entityG circle
+--  where
+--   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
 renderGhosts :: [Ghost] -> Maze -> Gloss.Picture -> Gloss.Picture
 renderGhosts xs m pic = pic <> foldr f Gloss.blank xs
@@ -69,10 +70,11 @@ renderTargetTile (x, y) bmap m  = transformToMaze
           bmap
       )
 
-renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
-renderPlayer MkPlayer{entity} = renderEntity entity circle
- where
-  circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 32)
+-- depricated
+-- renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
+-- renderPlayer MkPlayer{entity} = renderEntity entity circle
+--  where
+--   circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 32)
 
 renderPlayerScore :: Player -> Gloss.Picture -> Gloss.Picture
 renderPlayerScore MkPlayer{score} pic =
