@@ -13,10 +13,14 @@ import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let newState = checkGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
+  let newState = checkGhosts $ unfrightenGhosts $ state{elapsedTime = elapsedTime state + dt, player = updatePlayer dt state, ghosts = updateGhosts dt state}
   let updateMaze = checkConsumable newState (player state) (maze state)
   -- print $ show $ (lives.player) state
   -- print $ show $ status updateMaze
+  print $ show $ behaviourMode (head $ ghosts state)
+  -- print $ "elapsedTime = " ++  show ( elapsedTime state)
+  -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
+  -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
   case status updateMaze of
     Running  -> return updateMaze
     Paused   -> return state
@@ -35,7 +39,6 @@ updatePlayer dt state =
 
 
 --  updatedEnt = checkValidHeading ent maze
-
 
 updateGhosts :: Float -> GameState -> [Ghost]
 updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]

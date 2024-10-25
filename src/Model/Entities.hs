@@ -14,7 +14,7 @@ data Movement = MkMovement
   , heading   :: Direction
   }
 
-data BehaviourMode = Chase | Scatter | Frightened | Home
+data BehaviourMode = Chase | Scatter | Frightened | Home deriving (Show)
 
 type Lives = Int
 
@@ -35,6 +35,7 @@ data Ghost = MkGhost
   , ghostName     :: GhostType
   , behaviourMode :: BehaviourMode
   , targetTile    :: EntityPosition
+  , homeCorner    :: EntityPosition
   }
 
 ghostEntity :: Entity
@@ -43,7 +44,7 @@ ghostEntity =
     { movement =
         MkMovement
           { direction = Model.Entities.Left
-          , speed = 4
+          , speed = 5
           , position = (27, -2)
           , heading = Model.Entities.Left
           }
@@ -56,8 +57,10 @@ initiateblinky =
     { entityG = ghostEntity
     , ghostName = Blinky
     , behaviourMode = Chase
+    , homeCorner = (27, -2)
     , targetTile = (0, 0)
     }
+
 
 pacmanEntity :: Entity
 pacmanEntity =

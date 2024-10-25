@@ -64,6 +64,7 @@ changeHeadingEnt :: Entity -> Direction -> Entity
 changeHeadingEnt ent heading = ent{movement = (movement ent){heading = heading}}
 
 -- could be reused to not change direction, but for the ghost to check next pos
+-- implement a class with this function for the ghost and players
 checkValidHeading :: Entity -> Float -> Maze -> Entity
 checkValidHeading ent@MkEntity{movement = move} tol maze =
   let headingDir = (heading . movement) ent
@@ -129,12 +130,22 @@ handleConsumable state player tile =
   tilePos = getTilePos $ (position . movement . entity) player
 
 --rewrite - this is ugly
+
+    -- if then else in guards
+      -- where
+      --   f p a b | p = a
+      --           | otherwise = b
+
+
+--maybe this would benefit from some smaller helper functions
 handleConsumable' :: GameState -> TilePosition -> ConsumableType -> GameState
 handleConsumable' state@MkGameState{maze, player} pos cType =
   checkPelletCount (state
     { maze = Map.insert pos (MkFloor EmptyTile) maze
     , player = updateScore cType player
     , pelletC = pelletC state -1
+    , ghosts  = if cType == SuperPellet then reverseGhostDirections $ changeGhostBehaviour (ghosts state) Frightened  else ghosts state
+    , unfrightenTime = if cType == SuperPellet then elapsedTime state + 7 else unfrightenTime state  -- the magic number here is the number of seconds a frighten is :)
     }) (pelletC state)
 
 checkPelletCount :: GameState -> Int -> GameState
@@ -153,13 +164,10 @@ cntPellets = Map.foldr cntConsumables $ -1
       cntConsumables (MkFloor (MkConsumable _)) acc = acc + 1
       cntConsumables _ acc                          = acc
 
-
 toggleGameOver :: GameState -> GameStatus
 toggleGameOver MkGameState{status = GameOver} = GameOver
 toggleGameOver MkGameState{status = Running}  = GameOver
 toggleGameOver MkGameState{status = x}        = x
-
-
 
 --include a better function for handling a hit
 checkGhosts :: GameState -> GameState
@@ -169,6 +177,18 @@ checkGhosts state@MkGameState{ghosts = xs, player = p}
     where
       hit = foldr (\x a -> x == snapToGrid ((position.movement.entity) p ) || a ) False ghostspos -- is dit niet gwn any?
       ghostspos = [snapToGrid ((position.movement.entityG) x) | x <- xs] -- get all ghost positions
+
+changeGhostBehaviour :: [Ghost] -> BehaviourMode -> [Ghost]
+changeGhostBehaviour xs mode = [x{behaviourMode = mode} | x <-xs]
+
+unfrightenGhosts :: GameState -> GameState
+unfrightenGhosts state@MkGameState{ghosts, elapsedTime, unfrightenTime}
+    | unfrightenTime < elapsedTime  = state{ghosts = changeGhostBehaviour ghosts Chase}
+    | otherwise = state
+
+reverseGhostDirections :: [Ghost] -> [Ghost]
+reverseGhostDirections ghosts =
+  [ ghost{entityG = (entityG ghost){movement = (movement (entityG ghost)) { direction = oppositeDirection (direction (movement (entityG ghost))) }}} | ghost <- ghosts ]
 
 decreasePlayerLives :: GameState -> Player -> GameState
 decreasePlayerLives state MkPlayer{lives = 1} = state{status = toggleGameOver state} -- if not GameOver, could also pattern match
@@ -186,3 +206,16 @@ resetGhost ghost@MkGhost{ghostName = _     , entityG} = ghost{entityG = resetEnt
 
 resetEntityPos :: Entity -> EntityPosition -> Entity
 resetEntityPos ent@MkEntity{movement = move} (x, y) = ent{movement = move{position = (x, y)}}
+
+
+oppositeDirection :: Direction -> Direction
+oppositeDirection Model.Entities.Left  = Model.Entities.Right
+oppositeDirection Model.Entities.Right = Model.Entities.Left
+oppositeDirection Model.Entities.Up    = Model.Entities.Down
+oppositeDirection Model.Entities.Down  = Model.Entities.Up
+oppositeDirection Model.Entities.Still = Model.Entities.Still  -- Default for "Still"
+
+-- Now define getOpDirection to handle entities and specific logic for "Still"
+getOpDirection :: Entity -> Direction -> Direction
+getOpDirection ent Model.Entities.Still = oppositeDirection (oldDirection ent)
+getOpDirection _ dir                    = oppositeDirection dir

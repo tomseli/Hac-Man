@@ -13,14 +13,12 @@ import           Model.Entities
 import           Model.Model
 
 import           View.RenderMaze
+import           View.Transform
 import           View.View
 
--- needed when opening in windowed mode
--- import View.Transform
-
 window :: Gloss.Display
--- window = InWindow "Hac-Man" gameArea (0, 0)
-window = Gloss.FullScreen
+window = GlossIO.InWindow "Hac-Man" gameArea (0, 0)
+-- window = Gloss.FullScreen
 
 initialState :: Map.Map Name Sprite -> GameState
 initialState x =
@@ -34,6 +32,7 @@ initialState x =
     , player = initiatePlayer
     , ghosts = [initiateblinky]
     , pelletC = cntPellets customMaze
+    , unfrightenTime = 0
     }
 
 main :: IO ()
