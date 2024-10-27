@@ -46,7 +46,7 @@ data Ghost = MkGhost
   , ghostName     :: GhostType
   , behaviourMode :: BehaviourMode
   , targetTile    :: EntityPosition
-  , homeCorner    :: EntityPosition
+  , homeTile      :: EntityPosition
   , scatterCorner :: EntityPosition
   , disAbleMove   :: Bool
   }
@@ -74,7 +74,7 @@ initiateblinky =
     { entityG = ghostEntity
     , ghostName = Blinky
     , behaviourMode = Home 7 --start frightend for seven seconds
-    , homeCorner = (0, 0)
+    , homeTile = (0, 0)
     , scatterCorner = (27, -2)
     , targetTile = (0, 0)
     , disAbleMove = True

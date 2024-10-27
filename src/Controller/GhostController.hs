@@ -66,7 +66,7 @@ moveGhost' ent ghost maz  = direction
             Chase _      -> targetTile ghost
             Scatter _    -> scatterCorner ghost
             Frightened _ -> targetTile ghost
-            Home _       -> homeCorner ghost
+            Home _       -> homeTile ghost
     direction = case behaviourMode ghost of
               Frightened _-> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
               _          -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
@@ -136,7 +136,7 @@ resetGhost :: GameState -> [Ghost] -> [Ghost]
 resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
 
 resetGhost' ::  GameState -> Ghost -> Ghost
-resetGhost' gstate ghost@MkGhost{entityG} = disableMovement ghost{entityG = resetEntityPos entityG (homeCorner ghost), behaviourMode = Home (elapsedTime gstate + 7)}
+resetGhost' gstate ghost@MkGhost{entityG} = disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost), behaviourMode = Home (elapsedTime gstate + 7)}
 
 enableMovement :: Ghost -> Ghost
 enableMovement g = g{disAbleMove = False}
