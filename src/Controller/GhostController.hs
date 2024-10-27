@@ -64,7 +64,7 @@ moveGhost' ent ghost maz  = direction
     gen = mkStdGen 42
     target = case behaviourMode ghost of
             Chase _      -> targetTile ghost
-            Scatter _    -> homeCorner ghost
+            Scatter _    -> scatterCorner ghost
             Frightened _ -> targetTile ghost
             Home _       -> homeCorner ghost
     direction = case behaviourMode ghost of
@@ -125,19 +125,18 @@ handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
   | otherwise =  checkPlayerDeath gstate{ player = resetPlayer, ghosts = resetAllGhosts } p
   where
     -- Reset only the specific ghost that was hit
-    updateCorrectGhost = map (\ghost -> if ghost == g then resetGhost' g else ghost) xs
+    updateCorrectGhost = map (\ghost -> if ghost == g then resetGhost' gstate g else ghost) xs
     -- Reset all ghosts if the player is not invincible (not frightened state)
-    resetAllGhosts = resetGhost xs
+    resetAllGhosts = resetGhost gstate xs
     -- Reset player position and direction to ensure consistency
     resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) (2, -2), lives = lives p -1}) Still
 
 
-resetGhost :: [Ghost] -> [Ghost]
-resetGhost xs = [resetGhost' x | x <- xs]
+resetGhost :: GameState -> [Ghost] -> [Ghost]
+resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
 
-resetGhost' :: Ghost -> Ghost
-resetGhost' ghost@MkGhost{ghostName = Blinky, entityG} = disableMovement ghost{entityG = resetEntityPos entityG (27, -2), behaviourMode = Home 7}
-resetGhost' ghost@MkGhost{ghostName = _     , entityG} = disableMovement ghost{entityG = resetEntityPos entityG (0, 0),   behaviourMode = Home 7}
+resetGhost' ::  GameState -> Ghost -> Ghost
+resetGhost' gstate ghost@MkGhost{entityG} = disableMovement ghost{entityG = resetEntityPos entityG (homeCorner ghost), behaviourMode = Home (elapsedTime gstate + 7)}
 
 enableMovement :: Ghost -> Ghost
 enableMovement g = g{disAbleMove = False}
