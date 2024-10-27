@@ -109,6 +109,8 @@ getNextPos (x, y) dir ran = (x', y')
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
+
+--consumables
 checkConsumable :: GameState -> Player -> Maze -> GameState
 checkConsumable state player maze =
   case Map.lookup (getTilePos (x, y)) maze of -- check inplace
@@ -129,14 +131,6 @@ handleConsumable state player tile =
  where
   tilePos = getTilePos $ (position . movement . entity) player
 
---rewrite - this is ugly
-
-    -- if then else in guards
-      -- where
-      --   f p a b | p = a
-      --           | otherwise = b
-
-
 --maybe this would benefit from some smaller helper functions
 handleConsumable' :: GameState -> TilePosition -> ConsumableType -> GameState
 handleConsumable' state@MkGameState{maze, player} pos cType =
@@ -144,8 +138,7 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
     { maze = Map.insert pos (MkFloor EmptyTile) maze
     , player = updateScore cType player
     , pelletC = pelletC state -1
-    , ghosts  = if cType == SuperPellet then reverseGhostDirections $ changeGhostBehaviour (ghosts state) Frightened  else ghosts state
-    , unfrightenTime = if cType == SuperPellet then elapsedTime state + 7 else unfrightenTime state  -- the magic number here is the number of seconds a frighten is :)
+    , ghosts  = if cType == SuperPellet then reverseGhostDirections $ changeGhostBehaviour (ghosts state) (Frightened  (elapsedTime state + 7))  else ghosts state
     }) (pelletC state)
 
 checkPelletCount :: GameState -> Int -> GameState
@@ -169,44 +162,19 @@ toggleGameOver MkGameState{status = GameOver} = GameOver
 toggleGameOver MkGameState{status = Running}  = GameOver
 toggleGameOver MkGameState{status = x}        = x
 
---include a better function for handling a hit
-checkGhosts :: GameState -> GameState
-checkGhosts state@MkGameState{ghosts = xs, player = p}
-  | hit = handleGhostInteraction (decreasePlayerLives state p)
-  | otherwise = state
-    where
-      hit = foldr (\x a -> x == snapToGrid ((position.movement.entity) p ) || a ) False ghostspos -- is dit niet gwn any?
-      ghostspos = [snapToGrid ((position.movement.entityG) x) | x <- xs] -- get all ghost positions
 
+--ghost player interaction
 changeGhostBehaviour :: [Ghost] -> BehaviourMode -> [Ghost]
 changeGhostBehaviour xs mode = [x{behaviourMode = mode} | x <-xs]
 
-unfrightenGhosts :: GameState -> GameState
-unfrightenGhosts state@MkGameState{ghosts, elapsedTime, unfrightenTime}
-    | unfrightenTime < elapsedTime  = state{ghosts = changeGhostBehaviour ghosts Chase}
-    | otherwise = state
-
 reverseGhostDirections :: [Ghost] -> [Ghost]
+reverseGhostDirections [] = []
 reverseGhostDirections ghosts =
   [ ghost{entityG = (entityG ghost){movement = (movement (entityG ghost)) { direction = oppositeDirection (direction (movement (entityG ghost))) }}} | ghost <- ghosts ]
 
-decreasePlayerLives :: GameState -> Player -> GameState
-decreasePlayerLives state MkPlayer{lives = 1} = state{status = toggleGameOver state} -- if not GameOver, could also pattern match
-decreasePlayerLives state p = state{player = p{lives = lives p -1}}
-
-handleGhostInteraction :: GameState -> GameState
-handleGhostInteraction state@MkGameState{ghosts = xs, player = p} = state{ghosts = updateGhosts, player = updatePlayer}
-  where
-    updatePlayer = changeDirPlayer (p{entity = resetEntityPos (entity p) (2, -2)}) Still
-    updateGhosts = [resetGhost x | x <- xs]
-
-resetGhost :: Ghost -> Ghost
-resetGhost ghost@MkGhost{ghostName = Blinky, entityG} = ghost{entityG = resetEntityPos entityG (27, -2)}
-resetGhost ghost@MkGhost{ghostName = _     , entityG} = ghost{entityG = resetEntityPos entityG (0, 0)}
-
-resetEntityPos :: Entity -> EntityPosition -> Entity
-resetEntityPos ent@MkEntity{movement = move} (x, y) = ent{movement = move{position = (x, y)}}
-
+checkPlayerDeath :: GameState -> Player -> GameState
+checkPlayerDeath state MkPlayer{lives = 1} = state{status = toggleGameOver state} -- if not GameOver, could also pattern match
+checkPlayerDeath state _ = state
 
 oppositeDirection :: Direction -> Direction
 oppositeDirection Model.Entities.Left  = Model.Entities.Right

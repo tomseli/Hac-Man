@@ -7,7 +7,7 @@ import           Control.Monad.State         (State, evalState, state)
 
 import           Controller.EntityController
 
-import           Data.List                   (minimumBy)
+import           Data.List                   (find, minimumBy)
 import           Data.Ord                    (comparing)
 
 import           Model.Entities
@@ -23,6 +23,7 @@ listOfDirections =
   , Model.Entities.Right
   , Model.Entities.Up
   , Model.Entities.Down
+  , Model.Entities.Still
   ]
 
 getValidDirections :: Entity -> Maze -> [Direction]
@@ -62,12 +63,12 @@ moveGhost' ent ghost maz  = direction
   where
     gen = mkStdGen 42
     target = case behaviourMode ghost of
-            Chase      -> targetTile ghost
-            Scatter    -> homeCorner ghost
-            Frightened -> targetTile ghost
-            _          -> homeCorner ghost
+            Chase _      -> targetTile ghost
+            Scatter _    -> homeCorner ghost
+            Frightened _ -> targetTile ghost
+            _            -> homeCorner ghost
     direction = case behaviourMode ghost of
-              Frightened -> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
+              Frightened _-> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
               _          -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
 
 updateGhostPositions :: [Ghost] -> GameState -> [Ghost]
@@ -78,46 +79,70 @@ updateGhostPositions' :: Ghost -> GameState -> Ghost
 updateGhostPositions' gh@MkGhost{ghostName = Blinky} gstate = gh{targetTile = (position.movement.entity.player) gstate}
 updateGhostPositions' g _      = g
 
+--include a better function for handling a hit
+checkGhosts :: GameState -> GameState
+checkGhosts gstate@MkGameState{ghosts = xs, player = p} =
+  case hitGhost of
+    Just ghost -> handleGhostInteraction gstate ghost
+    Nothing    -> gstate
+  where
+    -- Find the first ghost that matches the player's position
+    hitGhost = find (\x -> snapToGrid (position . movement . entity $ p) == snapToGrid (position . movement . entityG $ x)) xs
+
+-- checkifScatter :: GameState -> GameState
+-- checkifScatter gstate@MkGameState{ghosts = xs} | any f xs  = gstate{ghosts = changeGhostBehaviour xs (Scatter 7)}
+--                                                | otherwise = gstate
+--   where
+--     f x = elapsedTime gstate > extractTime (behaviourMode x)
 
 
+gotoScatterGhosts :: GameState -> GameState
+gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime}
+    | extractTime (behaviourMode (head ghosts)) < elapsedTime =
+        gstate { ghosts = changeGhostBehaviour ghosts newBehaviour }
+    | otherwise = gstate
+  where
+    isChasing = case behaviourMode (head ghosts) of
+                  Chase _ -> True
+                  _       -> False
+    newBehaviour = if isChasing then Scatter (elapsedTime + 7) else Chase (elapsedTime + 20) -- could add extra check to max to four scatters
 
-      -- listOfDirections :: [Direction]
+extractTime :: BehaviourMode -> Float
+extractTime (Chase time)      = time
+extractTime (Scatter time)    = time
+extractTime (Frightened time) = time
+extractTime (Home time)       = time
 
--- listOfDirections =
---   [ Model.Entities.Left
---   , Model.Entities.Right
---   , Model.Entities.Up
---   , Model.Entities.Down
---   ]
+resetEntityPos :: Entity -> EntityPosition -> Entity
+resetEntityPos ent@MkEntity{movement = move} (x, y) = ent{movement = move{position = (x, y)}}
 
--- getValidDirections :: Entity -> Maze -> [Direction]
--- getValidDirections ent maz = [dir | dir <- listOfDirections, valid dir && invalid dir]
---  where
---   valid dir = case checkEntCollision checkWall (changeDirEnt ent dir) 1 maz of
---     Nothing -> False
---     Just _ -> True
---   invalid dir = dir /= getOpDirection ((direction . movement) ent)
-
--- chooseDirection :: [Direction] -> EntityPosition -> EntityPosition -> Direction
--- chooseDirection [] _ _ = error "stuck"
--- chooseDirection xs (x, y) (x', y') =
---   minimumBy
---     (comparing (\dir -> distanceTilePos (getNextPos (x, y) dir 1.0) (x', y')))
---     xs
+handleGhostInteraction :: GameState -> Ghost -> GameState
+handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
+  | isFrightened g = gstate {
+      ghosts = updateCorrectGhost,
+      player = p{score = score p + 400}
+    }
+  | otherwise =  checkPlayerDeath gstate{ player = resetPlayer, ghosts = resetAllGhosts } p
+  where
+    -- Reset only the specific ghost that was hit
+    updateCorrectGhost = map (\ghost -> if ghost == g then resetGhost' g else ghost) xs
+    -- Reset all ghosts if the player is not invincible (not frightened state)
+    resetAllGhosts = resetGhost xs
+    -- Reset player position and direction to ensure consistency
+    resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) (2, -2), lives = lives p -1}) Still
 
 
--- distanceTilePos :: EntityPosition -> EntityPosition -> Float
--- distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
+resetGhost :: [Ghost] -> [Ghost]
+resetGhost xs = [resetGhost' x | x <- xs]
 
--- moveGhost :: GameState -> Entity -> Float -> Maze -> Entity
--- moveGhost state ent dis maz = moveWithCollision (changeHeadingEnt ent decision) dis maz
---     where
---       decision = chooseDirection (getValidDirections ent maz) ((position.movement) ent) (2, -2)--((position.movement.entity.player) state)
+resetGhost' :: Ghost -> Ghost
+resetGhost' ghost@MkGhost{ghostName = Blinky, entityG} = ghost{entityG = resetEntityPos entityG (27, -2)}
+resetGhost' ghost@MkGhost{ghostName = _     , entityG} = ghost{entityG = resetEntityPos entityG (0, 0)}
 
--- getOpDirection :: Direction -> Direction
--- getOpDirection Model.Entities.Left = Model.Entities.Right
--- getOpDirection Model.Entities.Right = Model.Entities.Left
--- getOpDirection Model.Entities.Up = Model.Entities.Down
--- getOpDirection Model.Entities.Down = Model.Entities.Up
--- getOpDirection Model.Entities.Still = Model.Entities.Still
+-- chech ghost for Frigtend ignoring the time paramter
+isFrightened :: Ghost -> Bool
+isFrightened ghost =
+  case behaviourMode ghost of
+  Frightened _ -> True
+  _            -> False
 

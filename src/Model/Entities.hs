@@ -1,9 +1,10 @@
+{-# LANGUAGE InstanceSigs #-}
 module Model.Entities where
 data IsAlive = Alive | Dead
 
 data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
 
-data GhostType = Inky | Pinky | Blinky | Clyde
+data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq)
 
 type EntityPosition = (Float, Float)
 
@@ -14,7 +15,17 @@ data Movement = MkMovement
   , heading   :: Direction
   }
 
-data BehaviourMode = Chase | Scatter | Frightened | Home deriving (Show)
+type Time = Float
+
+data BehaviourMode = Chase Time | Scatter Time | Frightened Time| Home Time deriving (Show)
+
+instance Eq BehaviourMode where
+  (==) :: BehaviourMode -> BehaviourMode -> Bool
+  Chase _ == Chase _           = True
+  Scatter _ == Scatter _       = True
+  Frightened _ == Frightened _ = True
+  Home _  == Home _            = True
+  _ == _                       = False
 
 type Lives = Int
 
@@ -38,15 +49,19 @@ data Ghost = MkGhost
   , homeCorner    :: EntityPosition
   }
 
+instance Eq Ghost where
+  (==) :: Ghost -> Ghost -> Bool
+  g1 == g2 = ghostName g1 == ghostName g2
+
 ghostEntity :: Entity
 ghostEntity =
   MkEntity
     { movement =
         MkMovement
-          { direction = Model.Entities.Left
+          { direction =  Model.Entities.Still
           , speed = 5
           , position = (27, -2)
-          , heading = Model.Entities.Left
+          , heading = Model.Entities.Still
           }
     , alive = Alive
     , oldDirection = Still
@@ -56,7 +71,7 @@ initiateblinky =
   MkGhost
     { entityG = ghostEntity
     , ghostName = Blinky
-    , behaviourMode = Chase
+    , behaviourMode = Frightened 7 --start frightend for seven seconds
     , homeCorner = (27, -2)
     , targetTile = (0, 0)
     }
