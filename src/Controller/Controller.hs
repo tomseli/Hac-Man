@@ -17,7 +17,7 @@ step dt state = do
   let updateMaze = checkConsumable newState (player state) (maze state)
   -- print $ show $ (lives.player) state
   -- print $ show $ status updateMaze
-  -- print $ show $ behaviourMode (head $ ghosts state)
+  print $ show $ behaviourMode (head $ ghosts state)
   -- print $ "elapsedTime = " ++  show ( elapsedTime state)
   -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
   -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
@@ -44,7 +44,13 @@ updateGhosts :: Float -> GameState -> [Ghost]
 updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]
 
 updateGhost :: Float -> GameState -> Ghost -> Ghost
-updateGhost dt state ghost = ghost {entityG = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)}
+updateGhost dt state ghost = ghost {entityG = moveGhost state (enableMovementFromHome ghost) ((speed . movement . entityG) ghost * dt) (maze state)}
+
+-- if in home, disable movement for home x seconds
+enableMovementFromHome :: Ghost -> Ghost
+enableMovementFromHome g = case behaviourMode g of
+                              Home _ -> disableMovement g
+                              _      -> enableMovement g
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state

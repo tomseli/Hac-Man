@@ -47,6 +47,7 @@ data Ghost = MkGhost
   , behaviourMode :: BehaviourMode
   , targetTile    :: EntityPosition
   , homeCorner    :: EntityPosition
+  , disAbleMove   :: Bool
   }
 
 instance Eq Ghost where
@@ -71,9 +72,10 @@ initiateblinky =
   MkGhost
     { entityG = ghostEntity
     , ghostName = Blinky
-    , behaviourMode = Frightened 7 --start frightend for seven seconds
+    , behaviourMode = Home 7 --start frightend for seven seconds
     , homeCorner = (27, -2)
     , targetTile = (0, 0)
+    , disAbleMove = True
     }
 
 

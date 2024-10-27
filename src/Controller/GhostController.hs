@@ -23,7 +23,6 @@ listOfDirections =
   , Model.Entities.Right
   , Model.Entities.Up
   , Model.Entities.Down
-  , Model.Entities.Still
   ]
 
 getValidDirections :: Entity -> Maze -> [Direction]
@@ -53,8 +52,9 @@ distanceTilePos :: EntityPosition -> EntityPosition -> Float
 distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
 
 moveGhost :: GameState -> Ghost -> Float -> Maze -> Entity
-moveGhost _ ghost@MkGhost{entityG = ent} dis maz = moveWithCollision (checkValidHeading (changeHeadingEnt ent{oldDirection =
+moveGhost _ ghost@MkGhost{entityG = ent} dis maz | not (disAbleMove ghost) = moveWithCollision (checkValidHeading (changeHeadingEnt ent{oldDirection =
   (direction.movement) ent} decision) 0.008 maz) dis maz
+                                                 | otherwise = ent
     where
       decision = moveGhost' ent ghost maz
 
@@ -66,7 +66,7 @@ moveGhost' ent ghost maz  = direction
             Chase _      -> targetTile ghost
             Scatter _    -> homeCorner ghost
             Frightened _ -> targetTile ghost
-            _            -> homeCorner ghost
+            Home _       -> homeCorner ghost
     direction = case behaviourMode ghost of
               Frightened _-> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
               _          -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
@@ -98,14 +98,14 @@ checkGhosts gstate@MkGameState{ghosts = xs, player = p} =
 
 gotoScatterGhosts :: GameState -> GameState
 gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime}
-    | extractTime (behaviourMode (head ghosts)) < elapsedTime =
-        gstate { ghosts = changeGhostBehaviour ghosts newBehaviour }
+    | extractTime (behaviourMode (head ghosts)) < elapsedTime = gstate { ghosts = changeGhostBehaviour ghosts isChasing }
     | otherwise = gstate
   where
     isChasing = case behaviourMode (head ghosts) of
-                  Chase _ -> True
-                  _       -> False
-    newBehaviour = if isChasing then Scatter (elapsedTime + 7) else Chase (elapsedTime + 20) -- could add extra check to max to four scatters
+                  Chase _   -> Scatter (elapsedTime + 7)
+                  Scatter _ -> Chase (elapsedTime + 20)
+                  Home _    -> Frightened (elapsedTime + 7)
+                  _         -> Chase (elapsedTime + 20)
 
 extractTime :: BehaviourMode -> Float
 extractTime (Chase time)      = time
@@ -136,8 +136,14 @@ resetGhost :: [Ghost] -> [Ghost]
 resetGhost xs = [resetGhost' x | x <- xs]
 
 resetGhost' :: Ghost -> Ghost
-resetGhost' ghost@MkGhost{ghostName = Blinky, entityG} = ghost{entityG = resetEntityPos entityG (27, -2)}
-resetGhost' ghost@MkGhost{ghostName = _     , entityG} = ghost{entityG = resetEntityPos entityG (0, 0)}
+resetGhost' ghost@MkGhost{ghostName = Blinky, entityG} = disableMovement ghost{entityG = resetEntityPos entityG (27, -2), behaviourMode = Home 7}
+resetGhost' ghost@MkGhost{ghostName = _     , entityG} = disableMovement ghost{entityG = resetEntityPos entityG (0, 0),   behaviourMode = Home 7}
+
+enableMovement :: Ghost -> Ghost
+enableMovement g = g{disAbleMove = False}
+
+disableMovement :: Ghost -> Ghost
+disableMovement g = g{disAbleMove = True}
 
 -- chech ghost for Frigtend ignoring the time paramter
 isFrightened :: Ghost -> Bool
