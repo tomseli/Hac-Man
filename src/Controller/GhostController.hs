@@ -52,7 +52,8 @@ distanceTilePos :: EntityPosition -> EntityPosition -> Float
 distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
 
 moveGhost :: GameState -> Ghost -> Float -> Maze -> Entity
-moveGhost _ ghost@MkGhost{entityG = ent} dis maz | not (disAbleMove ghost) = moveWithCollision (checkValidHeading (changeHeadingEnt ent{oldDirection =
+moveGhost _ ghost@MkGhost{entityG = ent} dis maz | not (disAbleMove ghost) =
+  moveWithCollision (checkValidHeading (changeHeadingEnt ent{oldDirection =
   (direction.movement) ent} decision) 0.008 maz) dis maz
                                                  | otherwise = ent
     where
@@ -104,7 +105,7 @@ gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime}
     isChasing = case behaviourMode (head ghosts) of
                   Chase _   -> Scatter (elapsedTime + 7)
                   Scatter _ -> Chase (elapsedTime + 20)
-                  Home _    -> Frightened (elapsedTime + 7)
+                  Home _    -> Scatter (elapsedTime + 7)
                   _         -> Chase (elapsedTime + 20)
 
 extractTime :: BehaviourMode -> Float
@@ -136,7 +137,9 @@ resetGhost :: GameState -> [Ghost] -> [Ghost]
 resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
 
 resetGhost' ::  GameState -> Ghost -> Ghost
-resetGhost' gstate ghost@MkGhost{entityG} = disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost), behaviourMode = Home (elapsedTime gstate + 7)}
+resetGhost' gstate ghost@MkGhost{entityG} =
+   disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost),
+                         behaviourMode = Home (elapsedTime gstate + 0)} -- stay in home for a second
 
 enableMovement :: Ghost -> Ghost
 enableMovement g = g{disAbleMove = False}

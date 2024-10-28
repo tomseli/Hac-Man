@@ -61,7 +61,7 @@ ghostEntity =
     { movement =
         MkMovement
           { direction =  Model.Entities.Still
-          , speed = 5
+          , speed = 3
           , position = (27, -2)
           , heading = Model.Entities.Still
           }
@@ -73,7 +73,7 @@ initiateblinky =
   MkGhost
     { entityG = ghostEntity
     , ghostName = Blinky
-    , behaviourMode = Home 7 --start frightend for seven seconds
+    , behaviourMode = Home 0 --start in home for seven seconds
     , homeTile = (0, 0)
     , scatterCorner = (27, -2)
     , targetTile = (0, 0)
