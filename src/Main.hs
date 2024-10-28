@@ -1,6 +1,7 @@
 module Main where
 
 import           Controller.Controller
+import           Controller.EntityController
 
 import qualified Data.Map                         as Map
 
@@ -13,14 +14,12 @@ import           Model.Model
 
 import           View.EntityAnimation
 import           View.RenderMaze
+import           View.Transform
 import           View.View
 
--- needed when opening in windowed mode
--- import View.Transform
-
 window :: Gloss.Display
--- window = InWindow "Hac-Man" gameArea (0, 0)
-window = Gloss.FullScreen
+window = GlossIO.InWindow "Hac-Man" gameArea (0, 0)
+-- window = Gloss.FullScreen
 
 initialState :: GameState
 initialState =
@@ -33,6 +32,8 @@ initialState =
     , windowInfo = MkWindowInfo (0, 0)
     , player = initiatePlayer
     , ghosts = [initiateblinky]
+    , pelletC = cntPellets customMaze
+    , unfrightenTime = 0
     }
 
 main :: IO ()

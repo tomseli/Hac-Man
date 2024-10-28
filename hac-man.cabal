@@ -84,7 +84,9 @@ executable Hac-Man
     build-depends:    base ^>=4.17.2.1,
                       gloss ^>=1.13.0.4,
                       containers,
-                      gloss-juicy 
+                      gloss-juicy,
+                      random,
+                      mtl 
 
     -- Directories containing source files.
     hs-source-dirs:   src

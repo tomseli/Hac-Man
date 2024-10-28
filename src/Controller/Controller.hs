@@ -13,16 +13,22 @@ import           System.Exit
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let newState = checkGhosts $ state{ elapsedTime = elapsedTime state + dt
+  let newState = checkGhosts $ gotoScatterGhosts $ state{ elapsedTime = elapsedTime state + dt
                                     , player      = updatePlayer dt state
                                     , ghosts      = updateGhosts dt state
                                     }
   let updateMaze = checkConsumable newState (player state) (maze state)
+  -- print $ show $ (lives.player) state
+  -- print $ show $ status updateMaze
+  -- print $ show $ behaviourMode (head $ ghosts state)
+  -- print $ "elapsedTime = " ++  show ( elapsedTime state)
+  -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
+  -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
   case status updateMaze of
     Running  -> return updateMaze
     Paused   -> return state
     Quitting -> exitSuccess
-    _        -> return updateMaze
+    GameOver -> return state{status = GameOver} --wrm tf moet je de player updaten pls help
 
 -- TODO: This function is difficult to expand
 -- see if we can make this better
@@ -49,9 +55,12 @@ updateAnimation anim s
 updateMovement :: Float -> GameState -> Entity
 updateMovement dt state =
   moveWithCollision
-    (entity (player state))
+    (checkValidHeading (entity (player state)) 0.08 (maze state)) --0.15% play in direction change
     ((speed . movement . entity . player) state * dt)
     (maze state)
+
+
+--  updatedEnt = checkValidHeading ent maze
 
 updateGhosts :: Float -> GameState -> [Ghost]
 updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (ghosts state) state]
@@ -60,11 +69,17 @@ updateGhosts dt state = [updateGhost dt state x | x <- updateGhostPositions (gho
 updateGhost :: Float -> GameState -> Ghost -> Ghost
 updateGhost dt state ghost =
   let
-    movedGhost = moveGhost state ghost ((speed . movement . entityG) ghost * dt) (maze state)
+    movedGhost = moveGhost state (enableMovementFromHome ghost) ((speed . movement . entityG) ghost * dt) (maze state)
     newAnimation = fmap (`updateAnimation` state) (animation movedGhost)
     updatedEntity = movedGhost { animation = newAnimation }
   in
     ghost {entityG = updatedEntity}
+
+-- if in home, disable movement for home x seconds
+enableMovementFromHome :: Ghost -> Ghost
+enableMovementFromHome g = case behaviourMode g of
+                              Home _ -> disableMovement g
+                              _      -> enableMovement g
 
 eventHandler :: Gloss.Event -> GameState -> IO GameState
 eventHandler e state = return $ (handleKeys e . handleResize e) state

@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 module Model.Entities where
 
 import qualified Graphics.Gloss as Gloss
@@ -6,7 +7,7 @@ data IsAlive = Alive | Dead
 
 data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
 
-data GhostType = Inky | Pinky | Blinky | Clyde
+data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq)
 
 type EntityPosition = (Float, Float)
 
@@ -17,7 +18,17 @@ data Movement = MkMovement
   , heading   :: Direction
   }
 
-data BehaviourMode = Chase | Scatter | Frightened | Home
+type Time = Float
+
+data BehaviourMode = Chase Time | Scatter Time | Frightened Time| Home Time deriving (Show)
+
+instance Eq BehaviourMode where
+  (==) :: BehaviourMode -> BehaviourMode -> Bool
+  Chase _ == Chase _           = True
+  Scatter _ == Scatter _       = True
+  Frightened _ == Frightened _ = True
+  Home _  == Home _            = True
+  _ == _                       = False
 
 type Lives = Int
 
@@ -46,17 +57,24 @@ data Ghost = MkGhost
   , ghostName     :: GhostType
   , behaviourMode :: BehaviourMode
   , targetTile    :: EntityPosition
+  , homeTile      :: EntityPosition
+  , scatterCorner :: EntityPosition
+  , disAbleMove   :: Bool
   }
+
+instance Eq Ghost where
+  (==) :: Ghost -> Ghost -> Bool
+  g1 == g2 = ghostName g1 == ghostName g2
 
 ghostEntity :: Entity
 ghostEntity =
   MkEntity
     { movement =
         MkMovement
-          { direction = Model.Entities.Left
-          , speed = 5
+          { direction =  Model.Entities.Still
+          , speed = 3
           , position = (27, -2)
-          , heading = Model.Entities.Left
+          , heading = Model.Entities.Still
           }
     , animation = Nothing
     , alive = Alive
@@ -68,9 +86,13 @@ initiateblinky =
   MkGhost
     { entityG = ghostEntity
     , ghostName = Blinky
-    , behaviourMode = Chase
+    , behaviourMode = Home 0 --start in home for seven seconds
+    , homeTile = (0, 0)
+    , scatterCorner = (27, -2)
     , targetTile = (0, 0)
+    , disAbleMove = True
     }
+
 
 pacmanEntity :: Entity
 pacmanEntity =
@@ -78,7 +100,7 @@ pacmanEntity =
     { movement =
         MkMovement
           { direction = Still
-          , speed = 8
+          , speed = 6
           , position = (2, -2)
           , heading = Still
           }
