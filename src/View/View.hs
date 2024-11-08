@@ -96,7 +96,7 @@ renderPlayerScore :: Player -> Gloss.Picture -> Gloss.Picture
 renderPlayerScore MkPlayer{score} pic =
   pic
     <> ( Gloss.color Gloss.white
-          . Gloss.translate 300 (-100)
+          . Gloss.translate 400 (-100)
           . Gloss.scale 0.25 0.25
        )
       (Gloss.color Gloss.white (Gloss.text $ show score))
@@ -105,10 +105,10 @@ renderHighScore :: GameState -> Gloss.Picture -> Gloss.Picture
 renderHighScore state pic =
   pic
     <> ( Gloss.color Gloss.white
-          . Gloss.translate 100 (-100)
+          . Gloss.translate 50 (-100)
           . Gloss.scale 0.25 0.25
        )
-      (Gloss.color Gloss.white (Gloss.text $ show (retrieveHighScore (highscores state))))
+      (Gloss.color Gloss.white (Gloss.text $ "Highscore: \n" ++ show (retrieveHighScore (highscores state))))
 
 
 renderStatus :: GameState -> Gloss.Picture -> Gloss.Picture
