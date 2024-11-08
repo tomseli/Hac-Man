@@ -20,7 +20,7 @@ debugPrinthighScores xs =  do mapM_ putStrLn xs
 
 saveHighscore :: HighScores -> GameState -> IO GameState
 saveHighscore hscrs state = do
-                              --closes file and write to it
+                              --Stops the file from being read when we want to write (Used length to evaluate the entire list, since length tranverses the entire list)
                               length hscrs `seq` writeFile "src/highscores.txt" (unlines hscrs)
                               return state
 
