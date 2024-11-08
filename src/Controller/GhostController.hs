@@ -91,7 +91,7 @@ getGhost :: [Ghost] -> GhostType -> Ghost
 getGhost ghosts gtype =
     case find (\g -> ghostName g == gtype) ghosts of
       Just blinky -> blinky
-      Nothing     -> error "Blinky not found in the list of ghosts"
+      Nothing     -> error "Ghost not found in the list of ghosts"
 
 --not the most beautifull solution to get the correct tiledistance
 -- not sure if this ACTUALLY the right algorithm for clyde but close enough ig
