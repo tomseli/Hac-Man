@@ -20,7 +20,8 @@ debugPrinthighScores xs =  do mapM_ putStrLn xs
 
 saveHighscore :: HighScores -> GameState -> IO GameState
 saveHighscore hscrs state = do
-                              writeFile "src/highscores.txt" (unlines hscrs)
+                              --closes file and write to it
+                              length hscrs `seq` writeFile "src/highscores.txt" (unlines hscrs)
                               return state
 
 --remembers the top 10 scores ofcourse this is useless in the current setup
