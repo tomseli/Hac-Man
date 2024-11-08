@@ -56,9 +56,6 @@ main = do
         . loadHighScores highScoreContents
         ) initialState
 
-  debugPrinthighScores (highscores state) --only a debug function
-
-
   GlossIO.playIO
     window
     Gloss.black
