@@ -170,6 +170,7 @@ renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [bl
         <> renderNextPos ((entity . player) state) maze
         <> renderGameArea (Gloss.makeColor 0 1 0 0.15)
         <> renderDebugTimer state
+        <> renderFPSCounter state
         <> renderDebugBlinky blinky maze
         <> renderMazeRenderState (isNewMaze state)
   | otherwise = Gloss.Blank <> pic
@@ -183,6 +184,14 @@ renderDebugTimer MkGameState{elapsedTime = time} =
       . Gloss.scale 0.25 0.25
   )
     $ Gloss.text (show time)
+
+renderFPSCounter :: GameState -> Gloss.Picture 
+renderFPSCounter MkGameState{deltaTime = dt } = 
+  ( Gloss.color Gloss.red
+      . Gloss.translate 10 (-60)
+      . Gloss.scale 0.25 0.25
+  ) 
+    $ Gloss.text $ show $ 1/dt
 
 renderGameArea :: Gloss.Color -> Gloss.Picture
 renderGameArea color =

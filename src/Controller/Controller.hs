@@ -15,10 +15,11 @@ import View.RenderMaze
 step :: Float -> GameState -> IO GameState
 step dt state = do
   let newState = checkGhosts $ gotoScatterGhosts $ state{ elapsedTime = elapsedTime state + dt
-                                    , player      = updatePlayer dt state
-                                    , ghosts      = updateGhosts dt state
-                                    }
-  
+                                                        , deltaTime   = dt
+                                                        , player      = updatePlayer dt state
+                                                        , ghosts      = updateGhosts dt state
+                                                        }
+
   -- this line is in gross violation of the MVC pattern, look for alternatives
   -- stores an old maze render in the gamestate for optimization purposes
   let updateMaze' = if isNewMaze newState 

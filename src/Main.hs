@@ -30,6 +30,7 @@ initialState =
     , oldMaze = Gloss.blank
     , sprites = Map.empty
     , elapsedTime = 0
+    , deltaTime = 0
     , enableDebug = True
     , windowInfo = MkWindowInfo (0, 0)
     , player = initiatePlayer

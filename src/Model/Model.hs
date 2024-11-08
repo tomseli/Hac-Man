@@ -24,6 +24,7 @@ data GameState = MkGameState
   , oldMaze        :: Gloss.Picture
   , sprites        :: Sprites
   , elapsedTime    :: Float
+  , deltaTime      :: Float
   , enableDebug    :: Bool
   , windowInfo     :: WindowInfo
   , player         :: Player
