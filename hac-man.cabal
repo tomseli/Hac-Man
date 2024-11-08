@@ -72,6 +72,7 @@ executable Hac-Man
                       View.Transform,
                       View.RenderMaze,
                       View.EntityAnimation,
+                      View.SaveHighScore,
                       Model.Model,
                       Model.Entities,
                       Model.Maze,

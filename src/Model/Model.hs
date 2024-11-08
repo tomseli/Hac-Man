@@ -17,6 +17,8 @@ data GameStatus = Running | GameOver | Paused | Quitting deriving (Eq, Show)
 
 newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 
+type HighScores = [String]
+
 data GameState = MkGameState
   { status         :: GameStatus
   , maze           :: Maze
@@ -28,4 +30,5 @@ data GameState = MkGameState
   , ghosts         :: [Ghost]
   , pelletC        :: Int
   , unfrightenTime :: Float
+  , highscores     :: HighScores
   }

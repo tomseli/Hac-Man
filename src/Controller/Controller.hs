@@ -11,6 +11,8 @@ import           Model.Model
 
 import           System.Exit
 
+import           View.SaveHighScore
+
 step :: Float -> GameState -> IO GameState
 step dt state = do
   let newState = checkGhosts $ gotoScatterGhosts $ state{ elapsedTime = elapsedTime state + dt
@@ -18,17 +20,16 @@ step dt state = do
                                     , ghosts      = updateGhosts dt state
                                     }
   let updateMaze = checkConsumable newState (player state) (maze state)
-  -- print $ show $ (lives.player) state
-  -- print $ show $ status updateMaze
-  -- print $ show $ behaviourMode (head $ ghosts state)
-  -- print $ "elapsedTime = " ++  show ( elapsedTime state)
-  -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
-  -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
   case status updateMaze of
     Running  -> return updateMaze
     Paused   -> return state
     Quitting -> exitSuccess
-    GameOver -> return state{status = GameOver} --wrm tf moet je de player updaten pls help
+    GameOver ->  handleGameOver state--wrm  moet je de player updaten pls help
+
+handleGameOver ::  GameState -> IO GameState
+handleGameOver state = do
+                      nState <- saveHighscore (updateHighscore (highscores state) ((score.player) state)) state
+                      return nState{status = GameOver}
 
 -- TODO: This function is difficult to expand
 -- see if we can make this better

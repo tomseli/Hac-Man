@@ -14,8 +14,10 @@ import           Model.Model
 
 import           View.EntityAnimation
 import           View.RenderMaze
+import           View.SaveHighScore
 import           View.Transform
 import           View.View
+
 
 window :: Gloss.Display
 window = GlossIO.InWindow "Hac-Man" gameArea (0, 0)
@@ -34,6 +36,7 @@ initialState =
     , ghosts = [initiateblinky]
     , pelletC = cntPellets customMaze
     , unfrightenTime = 0
+    , highscores = []  -- not yet loaded
     }
 
 main :: IO ()
@@ -42,15 +45,19 @@ main = do
   sp <- loadActiveSprites
   playerAnimation <- loadPlayerAnimation
   blinkyAnimation <- loadBlinkyAnimation
+  highScoreContents  <- readFile "src/highscores.txt"
 
   -- store the new info in state
   let
     state =
-      (storeActiveSprites sp
-      . storePlayerAnimation playerAnimation
-      . storeGhostAnimation [blinkyAnimation]
-      )
-      initialState
+        ( storeActiveSprites sp
+        . storePlayerAnimation playerAnimation
+        . storeGhostAnimation [blinkyAnimation]
+        . loadHighScores highScoreContents
+        ) initialState
+
+  debugPrinthighScores (highscores state) --only a debug function
+
 
   GlossIO.playIO
     window

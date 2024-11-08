@@ -141,6 +141,7 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
     , ghosts  = if cType == SuperPellet then reverseGhostDirections $ changeGhostBehaviour (ghosts state) (Frightened  (elapsedTime state + 7))  else ghosts state
     }) (pelletC state)
 
+--checks if all pellets are eaten
 checkPelletCount :: GameState -> Int -> GameState
 checkPelletCount state 0 = state{status = toggleGameOver state}
 checkPelletCount state _ = state

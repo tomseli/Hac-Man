@@ -66,14 +66,14 @@ instance Eq Ghost where
   (==) :: Ghost -> Ghost -> Bool
   g1 == g2 = ghostName g1 == ghostName g2
 
-ghostEntity :: Entity
-ghostEntity =
+ghostEntity :: EntityPosition -> Entity
+ghostEntity pos =
   MkEntity
     { movement =
         MkMovement
           { direction =  Model.Entities.Still
           , speed = 3
-          , position = (27, -2)
+          , position = pos
           , heading = Model.Entities.Still
           }
     , animation = Nothing
@@ -84,10 +84,10 @@ ghostEntity =
 initiateblinky :: Ghost
 initiateblinky =
   MkGhost
-    { entityG = ghostEntity
+    { entityG = ghostEntity (15, -12) --spawnposition
     , ghostName = Blinky
-    , behaviourMode = Home 0 --start in home for seven seconds
-    , homeTile = (0, 0)
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile = (15, -12) -- position after reset (eaten)
     , scatterCorner = (27, -2)
     , targetTile = (0, 0)
     , disAbleMove = True
