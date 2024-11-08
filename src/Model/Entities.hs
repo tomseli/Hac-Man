@@ -118,6 +118,19 @@ initiateClyde =
     , disAbleMove = True
     }
 
+initiateInky :: Ghost
+initiateInky =
+  MkGhost
+    { entityG = ghostEntity (15, -12) --spawnposition
+    , ghostName = Inky
+    , behaviourMode = Home 7 --start in home for 0 seconds
+    , homeTile = (15, -12) -- position after reset (eaten)
+    , scatterCorner = (27, -30)
+    , targetTile = (0, 0)
+    , disAbleMove = True
+    }
+
+
 pacmanEntity :: Entity
 pacmanEntity =
   MkEntity

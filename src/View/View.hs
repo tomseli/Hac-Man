@@ -181,7 +181,7 @@ renderLogo pic =
 
 
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
-renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky, pinky, clyde]} pic
+renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky, pinky, clyde, inky]} pic
   | debug =
       pic
         <> renderNextPos ((entity . player) state) maze
@@ -190,6 +190,7 @@ renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [bl
         <> renderDebugGhost blinky Gloss.red maze
         <> renderDebugGhost pinky Gloss.rose maze
         <> renderDebugGhost clyde Gloss.orange maze
+        <> renderDebugGhost inky Gloss.blue maze
   | otherwise = Gloss.Blank <> pic
 renderDebugInfo _ _ =  error "renderDebugInfo: Failed to pattern match (Missing initiated ghost)"
 

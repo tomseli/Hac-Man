@@ -33,7 +33,7 @@ initialState =
     , enableDebug = True
     , windowInfo = MkWindowInfo (0, 0)
     , player = initiatePlayer
-    , ghosts = [initiateblinky, initiatePinky, initiateClyde]
+    , ghosts = [initiateblinky, initiatePinky, initiateClyde, initiateInky]
     , pelletC = cntPellets customMaze
     , unfrightenTime = 0
     , highscores = []  -- not yet loaded
@@ -47,6 +47,7 @@ main = do
   blinkyAnimation <- loadBlinkyAnimation
   pinkyAnimation  <- loadBlinkyAnimation
   clydeAnimation  <- loadBlinkyAnimation
+  inkyAnimation   <- loadBlinkyAnimation
   highScoreContents  <- readFile "src/highscores.txt"
 
   -- store the new info in state
@@ -54,7 +55,7 @@ main = do
     state =
         ( storeActiveSprites sp
         . storePlayerAnimation playerAnimation
-        . storeGhostAnimation [blinkyAnimation, pinkyAnimation, clydeAnimation]
+        . storeGhostAnimation [blinkyAnimation, pinkyAnimation, clydeAnimation, inkyAnimation]
         . loadHighScores highScoreContents
         ) initialState
 

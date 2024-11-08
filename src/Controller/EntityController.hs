@@ -109,6 +109,8 @@ getNextPos (x, y) dir ran = (x', y')
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
+fromTilePos :: TilePosition -> EntityPosition
+fromTilePos (tileX, tileY) = (fromIntegral tileX, fromIntegral (-tileY))
 
 --consumables
 checkConsumable :: GameState -> Player -> Maze -> GameState

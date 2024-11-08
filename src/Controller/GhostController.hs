@@ -6,6 +6,7 @@ import           Control.Monad.State         (State, evalState, state)
 
 import           Controller.EntityController
 
+import           Data.Bifunctor
 import           Data.List                   (find, minimumBy)
 import           Data.Ord                    (comparing)
 
@@ -16,7 +17,6 @@ import           Model.Model
 import           System.Random               (StdGen, mkStdGen, randomR)
 
 import           View.Transform              (tileSize)
-
 
 listOfDirections :: [Direction]
 listOfDirections =
@@ -82,7 +82,16 @@ updateGhostPositions' :: Ghost -> GameState -> Ghost
 updateGhostPositions' gh@MkGhost{ghostName = Blinky} gstate = gh{targetTile = (position.movement.entity.player) gstate}
 updateGhostPositions' gh@MkGhost{ghostName = Pinky} gstate = gh{targetTile = (getNextPos $ (position.movement.entity.player) gstate) ((direction.movement.entity.player) gstate) 4}
 updateGhostPositions' gh@MkGhost{ghostName = Clyde} gstate = tilePositionClyde (player gstate) gh
-updateGhostPositions' g _      = g
+updateGhostPositions' gh@MkGhost{ghostName = Inky} gstate = tilePositionInky (player gstate)  (getGhost (ghosts gstate) Blinky) gh
+-- updateGhostPositions' g _      = g
+
+
+-- Helper function to get Blinky's position
+getGhost :: [Ghost] -> GhostType -> Ghost
+getGhost ghosts gtype =
+    case find (\g -> ghostName g == gtype) ghosts of
+      Just blinky -> blinky
+      Nothing     -> error "Blinky not found in the list of ghosts"
 
 --not the most beautifull solution to get the correct tiledistance
 -- not sure if this ACTUALLY the right algorithm for clyde but close enough ig
@@ -93,6 +102,25 @@ tilePositionClyde player ghost | distanceTilePos playerPos ghostPos <= (4 * fst 
                                       ghostPos =  (position.movement.entityG) ghost
 
 
+-- Inky's target tile logic
+tilePositionInky :: Player -> Ghost -> Ghost -> Ghost
+tilePositionInky player blinky inky =
+    inky { targetTile =  (targetPosX, targetPosY)}
+  where
+    -- Calculate Pac-Man's position two tiles ahead
+    playerPos = (position . movement . entity) player
+    playerDir = (direction . movement . entity) player
+    referenceTile = getNextPos playerPos playerDir 2
+
+    -- Blinky's current position
+    blinkyPos = (position . movement . entityG) blinky
+
+    -- Calculate the vector from Blinky to the reference tile and double it
+    (refX, refY) = referenceTile
+    (blinkyX, blinkyY) = blinkyPos
+    targetPosX = refX + 2 * (refX - blinkyX)
+    targetPosY = refY + 2 * (refY - blinkyY)
+    -- target = (bimap (targetPosX /) (targetPosY /) (tileSize))
 
 --include a better function for handling a hit
 checkGhosts :: GameState -> GameState
