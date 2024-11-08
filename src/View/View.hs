@@ -18,8 +18,8 @@ import           Prelude                     hiding (Left, Right)
 
 import           View.EntityAnimation
 import           View.RenderMaze
+import           View.SaveHighScore
 import           View.Transform
-
 -- picture pipeline, add functions with signature func:: Picture -> Picture
 -- pic <> should always be the left most part of these functions
 render :: GameState -> IO Gloss.Picture
@@ -42,6 +42,7 @@ render
             . renderGhosts ghosts maze
             . renderMaze maze spriteMap
             . renderPlayerScore player
+            . renderHighScore state
             . renderPlayerHealth player
         )
           Gloss.Blank
@@ -99,6 +100,16 @@ renderPlayerScore MkPlayer{score} pic =
           . Gloss.scale 0.25 0.25
        )
       (Gloss.color Gloss.white (Gloss.text $ show score))
+
+renderHighScore :: GameState -> Gloss.Picture -> Gloss.Picture
+renderHighScore state pic =
+  pic
+    <> ( Gloss.color Gloss.white
+          . Gloss.translate 100 (-100)
+          . Gloss.scale 0.25 0.25
+       )
+      (Gloss.color Gloss.white (Gloss.text $ show (retrieveHighScore (highscores state))))
+
 
 renderStatus :: GameState -> Gloss.Picture -> Gloss.Picture
 renderStatus MkGameState{status = GameOver} pic = renderGameOver pic

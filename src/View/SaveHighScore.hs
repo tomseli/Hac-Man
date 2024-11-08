@@ -4,8 +4,11 @@
 module View.SaveHighScore where
 
 
+import           Data.Maybe
+
 import           Model.Model
 
+import           Text.Read   (readMaybe)
 
 loadHighScores :: String -> GameState -> GameState
 loadHighScores str state = state{highscores = hscrs}
@@ -21,7 +24,7 @@ saveHighscore hscrs state = do
                               return state
 
 --remembers the top 10 scores
-updateHighscore :: [String] -> Int -> [String]
+updateHighscore :: HighScores -> Int -> HighScores
 updateHighscore [] nHscr            = "HIGHSCORES:" : [show nHscr]  -- Handle the case where the list is empty
 updateHighscore (header:rest) nHscr = header : take 10 (convertToListInt (quicksort $ convertToIntList $ rest ++ [show nHscr]))
 
@@ -33,8 +36,15 @@ quicksort (x:xs) =
         biggerSorted  = quicksort [a | a <- xs, a > x]
     in  biggerSorted ++ [x] ++ smallerSorted
 
+
+--save conversion from string to Int since read is undefined with an empty string
 convertToIntList :: [String] -> [Int]
-convertToIntList = map read
+convertToIntList = map (fromMaybe 0 . readMaybe)
 
 convertToListInt :: [Int] -> [String]
 convertToListInt = map show
+
+retrieveHighScore :: HighScores -> Int
+retrieveHighScore []        = 0
+retrieveHighScore (_:score) = (fromMaybe 0 . readMaybe) $ head score
+
