@@ -20,6 +20,7 @@ step dt state = do
                                     }
   
   -- this line is in gross violation of the MVC pattern, look for alternatives
+  -- stores an old maze render in the gamestate for optimization purposes
   let updateMaze' = if isNewMaze newState 
                     then newState{ isNewMaze = False
                                  , oldMaze = renderMaze newState Gloss.Blank} 
