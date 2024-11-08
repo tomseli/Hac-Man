@@ -28,7 +28,6 @@ render
     { windowInfo = wInfo
     , player = player
     , maze = maze
-    , sprites = spriteMap
     , ghosts = ghosts
     } =
     return $
@@ -40,7 +39,7 @@ render
             . renderPlayerAnimation player maze
             -- . renderBlinky blinky maze
             . renderGhosts ghosts maze
-            . renderMaze maze spriteMap
+            . renderMaze state
             . renderPlayerScore player
             . renderPlayerHealth player
         )
@@ -172,6 +171,7 @@ renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [bl
         <> renderGameArea (Gloss.makeColor 0 1 0 0.15)
         <> renderDebugTimer state
         <> renderDebugBlinky blinky maze
+        <> renderMazeRenderState (isNewMaze state)
   | otherwise = Gloss.Blank <> pic
 renderDebugInfo _ _ =  Gloss.Blank
 
@@ -184,13 +184,19 @@ renderDebugTimer MkGameState{elapsedTime = time} =
   )
     $ Gloss.text (show time)
 
-renderGameArea :: Gloss.Color ->Gloss.Picture
+renderGameArea :: Gloss.Color -> Gloss.Picture
 renderGameArea color =
   Gloss.color color $ --Gloss.makeColor 0 1 0 0.15
     Gloss.polygon [(0, 0), (x, 0), (x, -y), (0, -y)]
  where
   x = fromIntegral $ fst gameArea
   y = fromIntegral $ snd gameArea
+
+renderMazeRenderState :: Bool -> Gloss.Picture
+renderMazeRenderState b = Gloss.translate 575 (-25) $ 
+                          Gloss.scale 0.25 0.25 $ 
+                          Gloss.color Gloss.red $ 
+                          Gloss.text ("Rendered: " ++ show b)
 
 renderSquare :: (Float, Float) -> (Float, Float) -> Gloss.Color -> Gloss.Picture
 renderSquare (x, y) (w, h) c =

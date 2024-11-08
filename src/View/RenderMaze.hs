@@ -39,8 +39,11 @@ storeActiveSprites xs state = state{sprites=foldr f Map.empty xs}
 
 ----------------------------------------------------------------------------------
 
-renderMaze :: Maze -> Sprites -> Gloss.Picture -> Gloss.Picture
-renderMaze m mSprites pic = pic <> renderMaze' m mSprites
+renderMaze :: GameState -> Gloss.Picture -> Gloss.Picture
+renderMaze MkGameState{ maze = m
+                      , sprites = s
+                      , isNewMaze = True } pic = pic <> renderMaze' m s
+renderMaze MkGameState{ oldMaze = p }      pic = pic <> p
 
 renderMaze' :: Maze -> Sprites -> Gloss.Picture
 renderMaze' m mSprites =

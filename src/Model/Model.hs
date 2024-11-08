@@ -20,6 +20,8 @@ newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 data GameState = MkGameState
   { status         :: GameStatus
   , maze           :: Maze
+  , isNewMaze      :: Bool
+  , oldMaze        :: Gloss.Picture
   , sprites        :: Sprites
   , elapsedTime    :: Float
   , enableDebug    :: Bool

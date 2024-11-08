@@ -26,6 +26,8 @@ initialState =
   MkGameState
     { status = Running
     , maze = customMaze
+    , isNewMaze = True
+    , oldMaze = Gloss.blank
     , sprites = Map.empty
     , elapsedTime = 0
     , enableDebug = True

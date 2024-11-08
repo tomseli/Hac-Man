@@ -10,6 +10,7 @@ import           Model.Entities
 import           Model.Model
 
 import           System.Exit
+import View.RenderMaze
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
@@ -17,7 +18,13 @@ step dt state = do
                                     , player      = updatePlayer dt state
                                     , ghosts      = updateGhosts dt state
                                     }
-  let updateMaze = checkConsumable newState (player state) (maze state)
+  
+  -- this line is in gross violation of the MVC pattern, look for alternatives
+  let updateMaze' = if isNewMaze newState 
+                    then newState{ isNewMaze = False
+                                 , oldMaze = renderMaze newState Gloss.Blank} 
+                    else newState 
+  let updateMaze = checkConsumable updateMaze' (player state) (maze state)
   -- print $ show $ (lives.player) state
   -- print $ show $ status updateMaze
   -- print $ show $ behaviourMode (head $ ghosts state)
