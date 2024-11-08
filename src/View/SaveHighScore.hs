@@ -23,10 +23,12 @@ saveHighscore hscrs state = do
                               writeFile "src/highscores.txt" (unlines hscrs)
                               return state
 
---remembers the top 10 scores
+--remembers the top 10 scores ofcourse this is useless in the current setup
+--(the game doesnt render all the scores) but call it future proving
 updateHighscore :: HighScores -> Int -> HighScores
 updateHighscore [] nHscr            = "HIGHSCORES:" : [show nHscr]  -- Handle the case where the list is empty
-updateHighscore (header:rest) nHscr = header : take 10 (convertToListInt (quicksort $ convertToIntList $ rest ++ [show nHscr]))
+updateHighscore (header:rest) nHscr =
+     header : take 10 (convertToListInt (quicksort $ convertToIntList $ rest ++ [show nHscr]))
 
 --uit t boek
 quicksort :: [Int] -> [Int]

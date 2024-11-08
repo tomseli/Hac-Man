@@ -24,7 +24,7 @@ step dt state = do
     Running  -> return updateMaze
     Paused   -> return state
     Quitting -> exitSuccess
-    GameOver ->  handleGameOver state--wrm  moet je de player updaten pls help
+    GameOver ->  handleGameOver state
 
 handleGameOver ::  GameState -> IO GameState
 handleGameOver state = do
