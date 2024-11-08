@@ -48,5 +48,5 @@ convertToListInt = map show
 
 retrieveHighScore :: HighScores -> Int
 retrieveHighScore []        = 0
-retrieveHighScore (_:score) = (fromMaybe 0 . readMaybe) $ head score
+retrieveHighScore (_:score) = (fromMaybe 0 . readMaybe) $ fromMaybe [] (listToMaybe score)
 
