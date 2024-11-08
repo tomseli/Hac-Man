@@ -1,5 +1,4 @@
-{-# LANGUAGE NamedFieldPuns   #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 module Controller.GhostController where
 
@@ -11,10 +10,12 @@ import           Data.List                   (find, minimumBy)
 import           Data.Ord                    (comparing)
 
 import           Model.Entities
-import           Model.Maze                  (Maze)
+import           Model.Maze
 import           Model.Model
 
 import           System.Random               (StdGen, mkStdGen, randomR)
+
+import           View.Transform              (tileSize)
 
 
 listOfDirections :: [Direction]
@@ -76,9 +77,22 @@ updateGhostPositions :: [Ghost] -> GameState -> [Ghost]
 updateGhostPositions [] _      = []
 updateGhostPositions xs gstate = [updateGhostPositions' x gstate | x <- xs]
 
+--implement target tile pos algorithms here
 updateGhostPositions' :: Ghost -> GameState -> Ghost
 updateGhostPositions' gh@MkGhost{ghostName = Blinky} gstate = gh{targetTile = (position.movement.entity.player) gstate}
+updateGhostPositions' gh@MkGhost{ghostName = Pinky} gstate = gh{targetTile = (getNextPos $ (position.movement.entity.player) gstate) ((direction.movement.entity.player) gstate) 4}
+updateGhostPositions' gh@MkGhost{ghostName = Clyde} gstate = tilePositionClyde (player gstate) gh
 updateGhostPositions' g _      = g
+
+--not the most beautifull solution to get the correct tiledistance
+-- not sure if this ACTUALLY the right algorithm for clyde but close enough ig
+tilePositionClyde :: Player -> Ghost -> Ghost
+tilePositionClyde player ghost | distanceTilePos playerPos ghostPos <= (4 * fst tileSize) =  ghost{targetTile = scatterCorner ghost}
+                               | otherwise = ghost{targetTile = playerPos}
+                                where playerPos =  (position.movement.entity) player
+                                      ghostPos =  (position.movement.entityG) ghost
+
+
 
 --include a better function for handling a hit
 checkGhosts :: GameState -> GameState
@@ -90,23 +104,20 @@ checkGhosts gstate@MkGameState{ghosts = xs, player = p} =
     -- Find the first ghost that matches the player's position
     hitGhost = find (\x -> snapToGrid (position . movement . entity $ p) == snapToGrid (position . movement . entityG $ x)) xs
 
--- checkifScatter :: GameState -> GameState
--- checkifScatter gstate@MkGameState{ghosts = xs} | any f xs  = gstate{ghosts = changeGhostBehaviour xs (Scatter 7)}
---                                                | otherwise = gstate
---   where
---     f x = elapsedTime gstate > extractTime (behaviourMode x)
-
 
 gotoScatterGhosts :: GameState -> GameState
-gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime}
-    | extractTime (behaviourMode (head ghosts)) < elapsedTime = gstate { ghosts = changeGhostBehaviour ghosts isChasing }
-    | otherwise = gstate
+gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime} =
+    gstate { ghosts = map updateGhostBehaviour ghosts }
   where
-    isChasing = case behaviourMode (head ghosts) of
-                  Chase _   -> Scatter (elapsedTime + 7)
-                  Scatter _ -> Chase (elapsedTime + 20)
-                  Home _    -> Scatter (elapsedTime + 7)
-                  _         -> Chase (elapsedTime + 20)
+    updateGhostBehaviour ghost
+      | extractTime (behaviourMode ghost) < elapsedTime = ghost { behaviourMode = toggleBehaviour (behaviourMode ghost) }
+      | otherwise = ghost
+
+    toggleBehaviour (Chase _)   = Scatter (elapsedTime + 7)
+    toggleBehaviour (Scatter _) = Chase (elapsedTime + 20)
+    toggleBehaviour (Home _)    = Scatter (elapsedTime + 7)
+    toggleBehaviour _           = Chase (elapsedTime + 20)
+
 
 extractTime :: BehaviourMode -> Float
 extractTime (Chase time)      = time
@@ -154,3 +165,6 @@ isFrightened ghost =
   Frightened _ -> True
   _            -> False
 
+--debug function for printing all ghosts
+printActiveGhosts :: GameState -> IO ()
+printActiveGhosts gstate =  putStrLn $ unwords (map (show . ghostName) (ghosts gstate))

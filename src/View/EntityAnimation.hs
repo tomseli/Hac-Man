@@ -70,4 +70,4 @@ renderGhostAnimation ghost@MkGhost{entityG} maze pic =
 
 renderAnimation :: Maybe Animation -> Gloss.Picture
 renderAnimation (Just MkAnimation{frames=xs, index=idx}) = xs !! idx
-renderAnimation Nothing                                  = Gloss.Blank
+renderAnimation Nothing                                  = error "Missing animation"

@@ -7,7 +7,7 @@ data IsAlive = Alive | Dead
 
 data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
 
-data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq)
+data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq, Show)
 
 type EntityPosition = (Float, Float)
 
@@ -93,6 +93,30 @@ initiateblinky =
     , disAbleMove = True
     }
 
+initiatePinky :: Ghost
+initiatePinky =
+  MkGhost
+    { entityG = ghostEntity (2, -30) --spawnposition
+    , ghostName = Pinky
+    , behaviourMode = Home 7 --start in home for 0 seconds
+    , homeTile = (15, -12) -- position after reset (eaten)
+    , scatterCorner = (2, -30)
+    , targetTile = (0, 0)
+    , disAbleMove = True
+    }
+
+
+initiateClyde :: Ghost
+initiateClyde =
+  MkGhost
+    { entityG = ghostEntity (27, -30) --spawnposition
+    , ghostName = Clyde
+    , behaviourMode = Home 7 --start in home for 0 seconds
+    , homeTile = (15, -12) -- position after reset (eaten)
+    , scatterCorner = (27, -30)
+    , targetTile = (0, 0)
+    , disAbleMove = True
+    }
 
 pacmanEntity :: Entity
 pacmanEntity =

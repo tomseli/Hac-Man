@@ -7,6 +7,8 @@ module View.View where
 
 import           Controller.EntityController
 
+import           Data.Foldable
+
 import qualified Graphics.Gloss.Data.Color   as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
 
@@ -61,6 +63,7 @@ renderBlinky MkGhost{entityG} = renderEntity entityG circle
  where
   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
+
 -- deprecated
 -- renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
 -- renderBlinky MkGhost{entityG} = renderEntity entityG circle
@@ -68,13 +71,14 @@ renderBlinky MkGhost{entityG} = renderEntity entityG circle
 --   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
 renderGhosts :: [Ghost] -> Maze -> Gloss.Picture -> Gloss.Picture
-renderGhosts xs m pic = pic <> foldr f Gloss.blank xs
+renderGhosts xs m pic = foldr' f pic xs
   where f x = renderGhostAnimation x m
 
-renderDebugBlinky :: Ghost -> Maze -> Gloss.Picture
-renderDebugBlinky ghost = renderTargetTile (targetTile ghost) circle
- where
-  circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 16)
+
+renderDebugGhost :: Ghost -> Gloss.Color -> Maze -> Gloss.Picture
+renderDebugGhost ghost color = renderTargetTile (targetTile ghost) circle
+  where
+    circle = Gloss.color color (Gloss.ThickCircle 0 16)
 
 renderTargetTile ::
   EntityPosition -> Gloss.Picture -> Maze -> Gloss.Picture
@@ -175,16 +179,19 @@ renderLogo pic =
        )
       (Gloss.color Gloss.yellow (Gloss.text "PACMAN"))
 
+
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
-renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky]} pic
+renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky, pinky, clyde]} pic
   | debug =
       pic
         <> renderNextPos ((entity . player) state) maze
         <> renderGameArea (Gloss.makeColor 0 1 0 0.15)
         <> renderDebugTimer state
-        <> renderDebugBlinky blinky maze
+        <> renderDebugGhost blinky Gloss.red maze
+        <> renderDebugGhost pinky Gloss.rose maze
+        <> renderDebugGhost clyde Gloss.orange maze
   | otherwise = Gloss.Blank <> pic
-renderDebugInfo _ _ =  Gloss.Blank
+renderDebugInfo _ _ =  error "renderDebugInfo: Failed to pattern match (Missing initiated ghost)"
 
 
 renderDebugTimer :: GameState -> Gloss.Picture
