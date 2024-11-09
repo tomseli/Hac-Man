@@ -137,16 +137,23 @@ inkyPelletRequirement, clydePelletRequirement :: GameState -> Int
 inkyPelletRequirement _ = 30   -- Number of pellets eaten to release Inky
 clydePelletRequirement MkGameState{pelletC} = fst pelletC `div` 3  -- Number of pellets eaten to release Clyde
 
+
+--delete this (positions of the pen wall)
+-- 14, 13
+-- 15, 13
+
 --Main game loop
 gotoScatterGhosts :: GameState -> GameState
 gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
     gstate { ghosts = map updateGhostBehaviour ghosts }
   where
     updateGhostBehaviour ghost
-      --toggle between Chase and Scatter based on elapsed time
-      | extractTime (behaviourMode ghost) < elapsedTime && canLeaveHome ghost = ghost { behaviourMode = toggleBehaviour (behaviourMode ghost) }
+      --toggle between Chase and Scatter based on elapsed time (FIX: sometimes pushes all the ghosts to the out of pen pos?)
+      | extractTime (behaviourMode ghost) < elapsedTime && canLeaveHome ghost = toggleBehaviour ghost (behaviourMode ghost)
+
       -- Check if ghost can switch from Home to Scatter based on pellet requirement
-      | isHome ghost && canLeaveHome ghost = ghost { behaviourMode = Scatter (elapsedTime + 7) }
+      | isHome ghost && canLeaveHome ghost =
+        ghost { behaviourMode = Scatter (elapsedTime + 7)}
       | otherwise = ghost
 
     -- Function to determine if Inky or Clyde can leave Home mode
@@ -155,11 +162,11 @@ gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
       Clyde -> uncurry (-) pelletC   >= clydePelletRequirement gstate
       _     -> True  -- Blinky and Pinky can always leave Home
 
-    -- Function to toggle between Chase and Scatter modes
-    toggleBehaviour (Chase _)   = Scatter (elapsedTime + 7)
-    toggleBehaviour (Scatter _) = Chase (elapsedTime + 20)
-    toggleBehaviour (Home _)    = Scatter (elapsedTime + 7)
-    toggleBehaviour _           = Chase (elapsedTime + 20)
+    -- Function to toggle between Chase and Scatter modes (Hate this function :) )
+    toggleBehaviour ghost (Chase _)       = ghost { behaviourMode = Scatter (elapsedTime + 7)}
+    toggleBehaviour ghost (Scatter _)     = ghost { behaviourMode = Chase (elapsedTime + 20)}
+    toggleBehaviour ghost (Home _)        = ghost { behaviourMode = Scatter (elapsedTime + 7) ,entityG = (entityG ghost) { movement = (movement (entityG ghost)) { position = (15, -12) }}}
+    toggleBehaviour ghost _               = ghost { behaviourMode = Chase (elapsedTime + 20)}
 
 
 extractTime :: BehaviourMode -> Float

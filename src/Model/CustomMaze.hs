@@ -1,16 +1,16 @@
 module Model.CustomMaze where
 
-import Model.Maze
+import qualified Data.Map   as Map
 
-import qualified Data.Map as Map
+import           Model.Maze
 
 -- generated using:
 -- python .\scripts\mazebuilder_v2.py .\scripts\data\maze_large.txt -m Model.CustomMaze -o .\src\Model\CustomMaze.hs -i Model.Maze -v
 customMaze :: Maze
 customMaze = foldr f Map.empty xs
- where 
+ where
   f (k, v) = Map.insert k v
-  xs = 
+  xs =
     [ ((0, 0), MkWall (MkCorner SE))
     , ((1, 0), MkWall (MkWallShape Horizontal))
     , ((2, 0), MkWall (MkWallShape Horizontal))
@@ -415,8 +415,8 @@ customMaze = foldr f Map.empty xs
     , ((11, 13), MkWall (MkCorner SE))
     , ((12, 13), MkWall (MkWallShape Horizontal))
     , ((13, 13), MkWall (MkCorner SW))
-    , ((14, 13), MkFloor EmptyTile)
-    , ((15, 13), MkFloor EmptyTile)
+    , ((14, 13), MkWall (MkWallShape Horizontal))
+    , ((15, 13), MkWall (MkWallShape Horizontal))
     , ((16, 13), MkWall (MkCorner SE))
     , ((17, 13), MkWall (MkWallShape Horizontal))
     , ((18, 13), MkWall (MkCorner SW))

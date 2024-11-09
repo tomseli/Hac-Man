@@ -143,7 +143,7 @@ pacmanEntity =
         MkMovement
           { direction = Still
           , speed = 6
-          , position = (2, -2)
+          , position = (14, -24)
           , heading = Still
           }
           , animation = Nothing -- animations are added later
