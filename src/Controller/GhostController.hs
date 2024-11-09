@@ -6,7 +6,6 @@ import           Control.Monad.State         (State, evalState, state)
 
 import           Controller.EntityController
 
-import           Data.Bifunctor
 import           Data.List                   (find, minimumBy)
 import           Data.Ord                    (comparing)
 
@@ -46,7 +45,8 @@ chooseDirection _ xs (x, y) (x', y') =
 chooseDirectionFrightened :: [Direction]  -> State StdGen Direction
 chooseDirectionFrightened directions = Control.Monad.State.state $ \gen ->
   let (index, nGen) = randomR (0, length directions - 1) gen
-  in (directions !! index, nGen)
+  in if index > -1 then (directions !! index, nGen)
+       else (Model.Entities.Down, nGen)
 
 
 distanceTilePos :: EntityPosition -> EntityPosition -> Float
@@ -71,7 +71,7 @@ moveGhost' ent ghost maz  = direction
             Home _       -> homeTile ghost
     direction = case behaviourMode ghost of
               Frightened _-> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
-              _          -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
+              _           -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
 
 updateGhostPositions :: [Ghost] -> GameState -> [Ghost]
 updateGhostPositions [] _      = []
@@ -118,8 +118,8 @@ tilePositionInky player blinky inky =
     -- Calculate the vector from Blinky to the reference tile and double it
     (refX, refY) = referenceTile
     (blinkyX, blinkyY) = blinkyPos
-    targetPosX = refX + 2 * (refX - blinkyX)
-    targetPosY = refY + 2 * (refY - blinkyY)
+    targetPosX = refX + 1.5 * (refX - blinkyX)
+    targetPosY = refY + 1.5 * (refY - blinkyY)
     -- target = (bimap (targetPosX /) (targetPosY /) (tileSize))
 
 --include a better function for handling a hit
@@ -132,15 +132,30 @@ checkGhosts gstate@MkGameState{ghosts = xs, player = p} =
     -- Find the first ghost that matches the player's position
     hitGhost = find (\x -> snapToGrid (position . movement . entity $ p) == snapToGrid (position . movement . entityG $ x)) xs
 
+-- Define conditions for Inky and Clyde to leave Home mode
+inkyPelletRequirement, clydePelletRequirement :: GameState -> Int
+inkyPelletRequirement _ = 30   -- Number of pellets eaten to release Inky
+clydePelletRequirement MkGameState{pelletC} = fst pelletC `div` 3  -- Number of pellets eaten to release Clyde
 
+--Main game loop
 gotoScatterGhosts :: GameState -> GameState
-gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime} =
+gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
     gstate { ghosts = map updateGhostBehaviour ghosts }
   where
     updateGhostBehaviour ghost
-      | extractTime (behaviourMode ghost) < elapsedTime = ghost { behaviourMode = toggleBehaviour (behaviourMode ghost) }
+      --toggle between Chase and Scatter based on elapsed time
+      | extractTime (behaviourMode ghost) < elapsedTime && canLeaveHome ghost = ghost { behaviourMode = toggleBehaviour (behaviourMode ghost) }
+      -- Check if ghost can switch from Home to Scatter based on pellet requirement
+      | isHome ghost && canLeaveHome ghost = ghost { behaviourMode = Scatter (elapsedTime + 7) }
       | otherwise = ghost
 
+    -- Function to determine if Inky or Clyde can leave Home mode
+    canLeaveHome ghost = case ghostName ghost of
+      Inky  -> uncurry (-) pelletC >= inkyPelletRequirement gstate
+      Clyde -> uncurry (-) pelletC   >= clydePelletRequirement gstate
+      _     -> True  -- Blinky and Pinky can always leave Home
+
+    -- Function to toggle between Chase and Scatter modes
     toggleBehaviour (Chase _)   = Scatter (elapsedTime + 7)
     toggleBehaviour (Scatter _) = Chase (elapsedTime + 20)
     toggleBehaviour (Home _)    = Scatter (elapsedTime + 7)
@@ -171,6 +186,8 @@ handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
     -- Reset player position and direction to ensure consistency
     resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) (2, -2), lives = lives p -1}) Still
 
+--when player is hit, reset all timers to original. When pacman dies, and all the ghosts are reset the ghosts can now leave the pen immidiatly.... (base the time that inky and clyde leave on the number of pellets eaten)
+
 
 resetGhost :: GameState -> [Ghost] -> [Ghost]
 resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
@@ -178,7 +195,7 @@ resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
 resetGhost' ::  GameState -> Ghost -> Ghost
 resetGhost' gstate ghost@MkGhost{entityG} =
    disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost),
-                         behaviourMode = Home (elapsedTime gstate + 0)} -- stay in home for a second
+                         behaviourMode = Home (elapsedTime gstate + homeTime ghost)} -- stay in home for a second
 
 enableMovement :: Ghost -> Ghost
 enableMovement g = g{disAbleMove = False}
@@ -196,3 +213,5 @@ isFrightened ghost =
 --debug function for printing all ghosts
 printActiveGhosts :: GameState -> IO ()
 printActiveGhosts gstate =  putStrLn $ unwords (map (show . ghostName) (ghosts gstate))
+
+

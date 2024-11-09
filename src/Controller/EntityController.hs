@@ -139,9 +139,25 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
   checkPelletCount (state
     { maze = Map.insert pos (MkFloor EmptyTile) maze
     , player = updateScore cType player
-    , pelletC = pelletC state -1
-    , ghosts  = if cType == SuperPellet then reverseGhostDirections $ changeGhostBehaviour (ghosts state) (Frightened  (elapsedTime state + 7))  else ghosts state
-    }) (pelletC state)
+    , pelletC = (fst (pelletC state), snd (pelletC state) - 1)
+    , ghosts  = if cType == SuperPellet then updateFrightendState state (ghosts state)  else ghosts state
+    }) (snd $ pelletC state)
+
+--if allowed to be frightend, frighten. Otherwise stay in home
+makeGhostFrightend :: GameState -> Ghost -> Ghost
+makeGhostFrightend gstate gh | isHome gh = gh
+                             | otherwise =  gh{behaviourMode = Frightened  (elapsedTime gstate + 7)}
+
+-- update all the ghosts that are allowed to be frightend, to frigthend
+updateFrightendState :: GameState -> [Ghost] -> [Ghost]
+updateFrightendState gstate xs = reverseGhostDirections [makeGhostFrightend gstate x | x <- xs]
+
+--check if the ghosts are allowed to be frightend
+isHome :: Ghost -> Bool
+isHome MkGhost{behaviourMode = Home _} = True
+isHome _                               = False
+
+
 
 --checks if all pellets are eaten
 checkPelletCount :: GameState -> Int -> GameState
@@ -154,9 +170,10 @@ updateScore Pellet player      = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
 updateScore Cherry player      = player{score = score player + 100}
 
-cntPellets :: Maze -> Int
-cntPellets = Map.foldr cntConsumables $ -1
+cntPellets :: Maze -> (Int, Int)
+cntPellets m = (nOfPellets, nOfPellets)
     where
+      nOfPellets  = Map.foldr cntConsumables (-1) m
       cntConsumables (MkFloor (MkConsumable _)) acc = acc + 1
       cntConsumables _ acc                          = acc
 

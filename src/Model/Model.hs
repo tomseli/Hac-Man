@@ -28,7 +28,7 @@ data GameState = MkGameState
   , windowInfo     :: WindowInfo
   , player         :: Player
   , ghosts         :: [Ghost]
-  , pelletC        :: Int
+  , pelletC        :: (Int, Int) -- total vs eaten
   , unfrightenTime :: Float
   , highscores     :: HighScores
   }

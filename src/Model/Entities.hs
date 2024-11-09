@@ -60,6 +60,7 @@ data Ghost = MkGhost
   , homeTile      :: EntityPosition
   , scatterCorner :: EntityPosition
   , disAbleMove   :: Bool
+  , homeTime      :: Float
   }
 
 instance Eq Ghost where
@@ -87,47 +88,51 @@ initiateblinky =
     { entityG = ghostEntity (15, -12) --spawnposition
     , ghostName = Blinky
     , behaviourMode = Home 0 --start in home for 0 seconds
-    , homeTile = (15, -12) -- position after reset (eaten)
+    , homeTile =  (15, -12) -- position after reset (eaten)
     , scatterCorner = (27, -2)
     , targetTile = (0, 0)
     , disAbleMove = True
+    , homeTime = 0
     }
 
 initiatePinky :: Ghost
 initiatePinky =
   MkGhost
-    { entityG = ghostEntity (2, -30) --spawnposition
+    { entityG = ghostEntity (15, -15) --spawnposition
     , ghostName = Pinky
-    , behaviourMode = Home 7 --start in home for 0 seconds
-    , homeTile = (15, -12) -- position after reset (eaten)
-    , scatterCorner = (2, -30)
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile = (15, -15) -- position after reset (eaten)
+    , scatterCorner = (2, -2)
     , targetTile = (0, 0)
     , disAbleMove = True
+    , homeTime = 0
     }
 
 
 initiateClyde :: Ghost
 initiateClyde =
   MkGhost
-    { entityG = ghostEntity (27, -30) --spawnposition
+    { entityG = ghostEntity (16, -15) --spawnposition
     , ghostName = Clyde
-    , behaviourMode = Home 7 --start in home for 0 seconds
-    , homeTile = (15, -12) -- position after reset (eaten)
-    , scatterCorner = (27, -30)
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile =  (16, -15) -- position after reset (eaten)
+    , scatterCorner = (2, -30)
     , targetTile = (0, 0)
     , disAbleMove = True
+    , homeTime = 7
     }
 
 initiateInky :: Ghost
 initiateInky =
   MkGhost
-    { entityG = ghostEntity (15, -12) --spawnposition
+    { entityG = ghostEntity (14, -15) --spawnposition
     , ghostName = Inky
-    , behaviourMode = Home 7 --start in home for 0 seconds
-    , homeTile = (15, -12) -- position after reset (eaten)
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile = (14, -15) -- position after reset (eaten)
     , scatterCorner = (27, -30)
     , targetTile = (0, 0)
     , disAbleMove = True
+    , homeTime = 7
     }
 
 
