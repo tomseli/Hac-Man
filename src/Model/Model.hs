@@ -31,4 +31,5 @@ data GameState = MkGameState
   , pelletC        :: (Int, Int) -- total vs eaten
   , unfrightenTime :: Float
   , highscores     :: HighScores
+  , level          :: Int
   }

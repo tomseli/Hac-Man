@@ -42,10 +42,11 @@ render
             . renderPlayerAnimation player maze
             -- . renderBlinky blinky maze
             . renderGhosts ghosts maze
-            . renderMaze maze spriteMap
+            . renderLevel state
             . renderPlayerScore player
             . renderHighScore state
             . renderPlayerHealth player
+            . renderMaze maze spriteMap
         )
           Gloss.Blank
 
@@ -63,12 +64,6 @@ renderBlinky MkGhost{entityG} = renderEntity entityG circle
  where
   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
-
--- deprecated
--- renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
--- renderBlinky MkGhost{entityG} = renderEntity entityG circle
---  where
---   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
 renderGhosts :: [Ghost] -> Maze -> Gloss.Picture -> Gloss.Picture
 renderGhosts xs m pic = foldr' f pic xs
@@ -113,6 +108,15 @@ renderHighScore state pic =
           . Gloss.scale 0.25 0.25
        )
       (Gloss.color Gloss.white (Gloss.text $ "Highscore: \n" ++ show (retrieveHighScore (highscores state))))
+
+renderLevel :: GameState -> Gloss.Picture -> Gloss.Picture
+renderLevel state pic =
+  pic
+    <> ( Gloss.color Gloss.white
+          . Gloss.translate 50 (-950)
+          . Gloss.scale 0.25 0.25
+       )
+      (Gloss.color Gloss.white (Gloss.text $ "Level: \n" ++ show ( level state)))
 
 
 renderStatus :: GameState -> Gloss.Picture -> Gloss.Picture

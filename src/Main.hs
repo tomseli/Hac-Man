@@ -37,6 +37,7 @@ initialState =
     , pelletC = cntPellets customMaze
     , unfrightenTime = 0
     , highscores = []  -- not yet loaded
+    , level = 1
     }
 
 main :: IO ()

@@ -40,14 +40,11 @@ chooseDirection _ xs (x, y) (x', y') =
     (comparing (\dir -> distanceTilePos (getNextPos (x, y) dir 1.0) (x', y')))
     xs
 
---dia 29 zegt dat je de gen er al uit kan halen, snap niet waarom (lambda?)
---unsafe: if ghost has no valid directions
 chooseDirectionFrightened :: [Direction]  -> State StdGen Direction
 chooseDirectionFrightened directions = Control.Monad.State.state $ \gen ->
   let (index, nGen) = randomR (0, length directions - 1) gen
   in if index > -1 then (directions !! index, nGen)
-       else (Model.Entities.Down, nGen)
-
+       else (Model.Entities.Down, nGen) -- if ghosts have no valid direction, go down (arbitrary)
 
 distanceTilePos :: EntityPosition -> EntityPosition -> Float
 distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
@@ -137,22 +134,17 @@ inkyPelletRequirement, clydePelletRequirement :: GameState -> Int
 inkyPelletRequirement _ = 30   -- Number of pellets eaten to release Inky
 clydePelletRequirement MkGameState{pelletC} = fst pelletC `div` 3  -- Number of pellets eaten to release Clyde
 
-
---delete this (positions of the pen wall)
--- 14, 13
--- 15, 13
-
 --Main game loop
-gotoScatterGhosts :: GameState -> GameState
-gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
+mainGameLoopGhosts :: GameState -> GameState
+mainGameLoopGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
     gstate { ghosts = map updateGhostBehaviour ghosts }
   where
     updateGhostBehaviour ghost
-      --toggle between Chase and Scatter based on elapsed time (FIX: sometimes pushes all the ghosts to the out of pen pos?)
+      --toggle between Chase and Scatter based on elapsed time
       | extractTime (behaviourMode ghost) < elapsedTime && canLeaveHome ghost = toggleBehaviour ghost (behaviourMode ghost)
 
       -- Check if ghost can switch from Home to Scatter based on pellet requirement
-      | isHome ghost && canLeaveHome ghost =
+      | isHome ghost && canLeaveHome ghost && (extractTime (behaviourMode ghost) < elapsedTime ) =
         ghost { behaviourMode = Scatter (elapsedTime + 7)}
       | otherwise = ghost
 
@@ -165,7 +157,7 @@ gotoScatterGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
     -- Function to toggle between Chase and Scatter modes (Hate this function :) )
     toggleBehaviour ghost (Chase _)       = ghost { behaviourMode = Scatter (elapsedTime + 7)}
     toggleBehaviour ghost (Scatter _)     = ghost { behaviourMode = Chase (elapsedTime + 20)}
-    toggleBehaviour ghost (Home _)        = ghost { behaviourMode = Scatter (elapsedTime + 7) ,entityG = (entityG ghost) { movement = (movement (entityG ghost)) { position = (15, -12) }}}
+    toggleBehaviour ghost (Home _)        = ghost { behaviourMode = Scatter (elapsedTime + 7), entityG = (entityG ghost) { movement = (movement (entityG ghost)) { position = (15, -12) }}}
     toggleBehaviour ghost _               = ghost { behaviourMode = Chase (elapsedTime + 20)}
 
 
@@ -175,8 +167,7 @@ extractTime (Scatter time)    = time
 extractTime (Frightened time) = time
 extractTime (Home time)       = time
 
-resetEntityPos :: Entity -> EntityPosition -> Entity
-resetEntityPos ent@MkEntity{movement = move} (x, y) = ent{movement = move{position = (x, y)}}
+
 
 handleGhostInteraction :: GameState -> Ghost -> GameState
 handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
@@ -193,22 +184,9 @@ handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
     -- Reset player position and direction to ensure consistency
     resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) (2, -2), lives = lives p -1}) Still
 
---when player is hit, reset all timers to original. When pacman dies, and all the ghosts are reset the ghosts can now leave the pen immidiatly.... (base the time that inky and clyde leave on the number of pellets eaten)
 
 
-resetGhost :: GameState -> [Ghost] -> [Ghost]
-resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
 
-resetGhost' ::  GameState -> Ghost -> Ghost
-resetGhost' gstate ghost@MkGhost{entityG} =
-   disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost),
-                         behaviourMode = Home (elapsedTime gstate + homeTime ghost)} -- stay in home for a second
-
-enableMovement :: Ghost -> Ghost
-enableMovement g = g{disAbleMove = False}
-
-disableMovement :: Ghost -> Ghost
-disableMovement g = g{disAbleMove = True}
 
 -- chech ghost for Frigtend ignoring the time paramter
 isFrightened :: Ghost -> Bool
@@ -217,7 +195,7 @@ isFrightened ghost =
   Frightened _ -> True
   _            -> False
 
---debug function for printing all ghosts
+--debug function for printing all ghosts (Names)
 printActiveGhosts :: GameState -> IO ()
 printActiveGhosts gstate =  putStrLn $ unwords (map (show . ghostName) (ghosts gstate))
 

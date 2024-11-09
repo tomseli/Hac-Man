@@ -73,7 +73,7 @@ ghostEntity pos =
     { movement =
         MkMovement
           { direction =  Model.Entities.Still
-          , speed = 3
+          , speed = 4
           , position = pos
           , heading = Model.Entities.Still
           }
@@ -92,7 +92,7 @@ initiateblinky =
     , scatterCorner = (27, -2)
     , targetTile = (0, 0)
     , disAbleMove = True
-    , homeTime = 0
+    , homeTime = 1
     }
 
 initiatePinky :: Ghost
@@ -105,7 +105,7 @@ initiatePinky =
     , scatterCorner = (2, -2)
     , targetTile = (0, 0)
     , disAbleMove = True
-    , homeTime = 0
+    , homeTime = 1
     }
 
 
@@ -158,3 +158,6 @@ initiatePlayer =
     , lives = 3
     , score = 0
     }
+
+playerSpawnPos :: EntityPosition
+playerSpawnPos = (14, -24)

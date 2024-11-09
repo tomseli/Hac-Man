@@ -4,8 +4,9 @@
 
 module Controller.EntityController where
 
-import qualified Data.Map       as Map
+import qualified Data.Map         as Map
 
+import           Model.CustomMaze
 import           Model.Entities
 import           Model.Maze
 import           Model.Model
@@ -143,6 +144,8 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
     , ghosts  = if cType == SuperPellet then updateFrightendState state (ghosts state)  else ghosts state
     }) (snd $ pelletC state)
 
+
+-----------------------------------------------------SHOULD BE IN GHOSTCONTROLLER--------------------------------------------------------------
 --if allowed to be frightend, frighten. Otherwise stay in home
 makeGhostFrightend :: GameState -> Ghost -> Ghost
 makeGhostFrightend gstate gh | isHome gh = gh
@@ -157,11 +160,40 @@ isHome :: Ghost -> Bool
 isHome MkGhost{behaviourMode = Home _} = True
 isHome _                               = False
 
+--resets level
+resetLevel :: GameState -> GameState
+resetLevel state = state{ghosts = nGhosts, maze = nmaze, player = nplayer, pelletC = pellets, level = level state + 1}
+                  where
+                    nplayer = (player state){entity = resetEntityPos ((entity.player) state) playerSpawnPos}
+                    nmaze = customMaze
+                    nGhosts = map (\g -> g{entityG = (entityG g){movement = ((movement.entityG) g)
+                                  {speed = (speed.movement.entityG) g + 1}}}) (resetGhost state (ghosts state))
+                    pellets = (\(a,_) -> (a, a)) (pelletC state)
 
+resetGhost :: GameState -> [Ghost] -> [Ghost]
+resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
+
+
+resetGhost' ::  GameState -> Ghost -> Ghost
+resetGhost' gstate ghost@MkGhost{entityG} =
+   disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost),
+                         behaviourMode = Home (elapsedTime gstate + homeTime ghost)} -- stay in home for a set number of seconds after being eaten
+
+resetEntityPos :: Entity -> EntityPosition -> Entity
+resetEntityPos ent@MkEntity{movement = move} (x, y) = ent{movement = move{position = (x, y)}}
+
+enableMovement :: Ghost -> Ghost
+enableMovement g = g{disAbleMove = False}
+
+disableMovement :: Ghost -> Ghost
+disableMovement g = g{disAbleMove = True}
+
+
+----------------------------------------------------------------------------------------------------------------------------------
 
 --checks if all pellets are eaten
 checkPelletCount :: GameState -> Int -> GameState
-checkPelletCount state 0 = state{status = toggleGameOver state}
+checkPelletCount state 0 = resetLevel state
 checkPelletCount state _ = state
 
 -- update with the correct values
