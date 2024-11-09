@@ -112,7 +112,7 @@ getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y))
 
 --consumables
 checkConsumable :: GameState -> Player -> Maze -> GameState
-checkConsumable state player maze = 
+checkConsumable state player maze =
   case Map.lookup (getTilePos (x, y)) maze of -- check inplace
     Nothing   -> state
     Just tile -> handleConsumable state player tile
@@ -139,8 +139,8 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
     , isNewMaze = True
     , player = updateScore cType player
     , pelletC = pelletC state -1
-    , ghosts  = if cType == SuperPellet 
-                then reverseGhostDirections $ changeGhostBehaviour (ghosts state) (Frightened (elapsedTime state + 7))  
+    , ghosts  = if cType == SuperPellet
+                then reverseGhostDirections $ changeGhostBehaviour (ghosts state) (Frightened (elapsedTime state + 7))
                 else ghosts state
     }) (pelletC state)
 

@@ -10,8 +10,8 @@ import           Model.Entities
 import           Model.Model
 
 import           System.Exit
-import View.RenderMaze
 
+import           View.RenderMaze
 import           View.SaveHighScore
 
 step :: Float -> GameState -> IO GameState
@@ -24,10 +24,10 @@ step dt state = do
 
   -- this line is in gross violation of the MVC pattern, look for alternatives
   -- stores an old maze render in the gamestate for optimization purposes
-  let updateMaze' = if isNewMaze newState 
+  let updateMaze' = if isNewMaze newState
                     then newState{ isNewMaze = False
-                                 , oldMaze = renderMaze newState Gloss.Blank} 
-                    else newState 
+                                 , oldMaze = renderMaze newState Gloss.Blank}
+                    else newState
   let updateMaze = checkConsumable updateMaze' (player state) (maze state)
   -- print $ show $ (lives.player) state
   -- print $ show $ status updateMaze

@@ -196,12 +196,12 @@ renderDebugTimer MkGameState{elapsedTime = time} =
   )
     $ Gloss.text (show time)
 
-renderFPSCounter :: GameState -> Gloss.Picture 
-renderFPSCounter MkGameState{deltaTime = dt } = 
+renderFPSCounter :: GameState -> Gloss.Picture
+renderFPSCounter MkGameState{deltaTime = dt } =
   ( Gloss.color Gloss.red
       . Gloss.translate 10 (-60)
       . Gloss.scale 0.25 0.25
-  ) 
+  )
     $ Gloss.text $ show $ 1/dt
 
 renderGameArea :: Gloss.Color -> Gloss.Picture
@@ -213,9 +213,9 @@ renderGameArea color =
   y = fromIntegral $ snd gameArea
 
 renderMazeRenderState :: Bool -> Gloss.Picture
-renderMazeRenderState b = Gloss.translate 575 (-25) $ 
-                          Gloss.scale 0.25 0.25 $ 
-                          Gloss.color Gloss.red $ 
+renderMazeRenderState b = Gloss.translate 575 (-25) $
+                          Gloss.scale 0.25 0.25 $
+                          Gloss.color Gloss.red $
                           Gloss.text ("Rendered: " ++ show b)
 
 renderSquare :: (Float, Float) -> (Float, Float) -> Gloss.Color -> Gloss.Picture
