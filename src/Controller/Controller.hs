@@ -10,16 +10,31 @@ import           Model.Entities
 import           Model.Model
 
 import           System.Exit
+import View.RenderMaze
 
 import           View.SaveHighScore
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
   let newState = checkGhosts $ gotoScatterGhosts $ state{ elapsedTime = elapsedTime state + dt
-                                    , player      = updatePlayer dt state
-                                    , ghosts      = updateGhosts dt state
-                                    }
-  let updateMaze = checkConsumable newState (player state) (maze state)
+                                                        , deltaTime   = dt
+                                                        , player      = updatePlayer dt state
+                                                        , ghosts      = updateGhosts dt state
+                                                        }
+
+  -- this line is in gross violation of the MVC pattern, look for alternatives
+  -- stores an old maze render in the gamestate for optimization purposes
+  let updateMaze' = if isNewMaze newState 
+                    then newState{ isNewMaze = False
+                                 , oldMaze = renderMaze newState Gloss.Blank} 
+                    else newState 
+  let updateMaze = checkConsumable updateMaze' (player state) (maze state)
+  -- print $ show $ (lives.player) state
+  -- print $ show $ status updateMaze
+  -- print $ show $ behaviourMode (head $ ghosts state)
+  -- print $ "elapsedTime = " ++  show ( elapsedTime state)
+  -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
+  -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
   case status updateMaze of
     Running  -> return updateMaze
     Paused   -> return state

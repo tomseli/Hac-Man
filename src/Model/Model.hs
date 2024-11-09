@@ -22,8 +22,11 @@ type HighScores = [String]
 data GameState = MkGameState
   { status         :: GameStatus
   , maze           :: Maze
+  , isNewMaze      :: Bool
+  , oldMaze        :: Gloss.Picture
   , sprites        :: Sprites
   , elapsedTime    :: Float
+  , deltaTime      :: Float
   , enableDebug    :: Bool
   , windowInfo     :: WindowInfo
   , player         :: Player
