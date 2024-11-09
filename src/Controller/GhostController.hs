@@ -182,7 +182,7 @@ handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
     -- Reset all ghosts if the player is not invincible (not frightened state)
     resetAllGhosts = resetGhost gstate xs
     -- Reset player position and direction to ensure consistency
-    resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) (2, -2), lives = lives p -1}) Still
+    resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) playerSpawnPos, lives = lives p -1}) Still
 
 
 
