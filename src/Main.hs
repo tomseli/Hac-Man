@@ -45,9 +45,9 @@ main = do
   sp <- loadActiveSprites
   playerAnimation <- loadPlayerAnimation
   blinkyAnimation <- loadBlinkyAnimation
-  pinkyAnimation  <- loadBlinkyAnimation
-  clydeAnimation  <- loadBlinkyAnimation
-  inkyAnimation   <- loadBlinkyAnimation
+  pinkyAnimation  <- loadPinkyAnimation
+  clydeAnimation  <- loadClydeAnimation
+  inkyAnimation   <- loadInkyAnimation
   highScoreContents  <- readFile "src/highscores.txt"
 
   -- store the new info in state
