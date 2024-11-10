@@ -136,97 +136,121 @@
 \section{Introduction} \label{ch:Introduction}
 The objective of this design document is to present the design choices for the creation of Pac-Man, along with their respective justifications. The decision to implement Pac-man is based on on the expected freedom the game offers in its implementation. Furthermore, Pac-Man will allow us to implement some of the optional requirements in addition to the minimum requirements. Additionally, some variations on the fundemental gameplay are introduced to make the game more unique.
 
-\section{Variations on the base game} \label{ch:twist}
-In order to introduce a new learning opportunity and make the game more unique, a player adversary will be introduced. This will introduce, a co-op type, multiplayer aspect to the game. This feature will introduce a second set of player inputs which allows the control of one of the ghosts.
-
 \section{Data types} \label{ch:dataTypes}
 %ghost and player
 
-The first thing to implement are models for the player and the ghosts. These objects need to move, and store some information about them. 
+The first thing that were implemeted are models for the player and the ghosts. These objects need to move, and store some information about them. 
 
-Movable objects in the game are called entities. These entities have a direction in which they are moving, a speed and a current position. These three data types are wrapped together in a record called movement. Furthermore, an entity can be alive or dead. 
+Movable objects in the game are called entities. These entities have a direction in which they are moving, a heading, a speed and a current position, stored in a record \textit{movement}. A distinction can be made twen heading and direction. Direction refers to the direction in which an entity is moving, whereas heading represents the direction in which the entity wants to move. For instance, Pacman moves up, but wants to move to the left, but there  is a wall in the way. In this example, the direction is up, and the heading is left.
 
-Then, we can create a data type for the player and the ghosts. A player gets lives, next to being an entity. And the ghosts get some identifiers for it's name and it's current behaviour. Lastly, a data type got created for an optional local MultiPlayer feature, where a second player can control one of the ghosts.
+Then, we can create a record for the player and the ghosts. A player gets lives and a score, next to being an entity. And the ghosts get some identifiers for it's name and it's current behaviour. The ghosts also hold a data type that reflects their current behaviour mode. This behaviour mode also holds the time for how long they should remain in that behaviour. Furthermore, the ghosts hold all target tilepositions for each different behaviourMode. A target tile is the tile which the ghost is attempting to move towards.
+
+% add something about the animations
 
 \begin{lstlisting}[language=Haskell]
-  data isAlive = Alive | Dead
-
-  data Direction = Left | Right | Up | Down
+  data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
+  
+  data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq, Show)
   
   type EntityPosition = (Float, Float)
   
-  data Movement {
-    direction :: Direction,
-    speed :: Int,
-    position :: EntityPosition
-  }
-
-  data Entity {
-    movement :: Movement,
-    alive :: isAlive
-  }
-
-  data GhostType = Inky 
-                 | Pinky 
-                 | Blinky 
-                 | Clyde 
+  data Movement = MkMovement
+    { direction :: Direction
+    , speed     :: Float
+    , position  :: EntityPosition
+    , heading   :: Direction
+    }
   
-  data BehaviourMode = Chase | Scatter | Frightened | Home
+  type Time = Float
+  
+  data BehaviourMode = Chase Time | Scatter Time | Frightened Time| Home Time deriving (Show)
+  
+
+
+  instance Eq BehaviourMode where
+    (==) :: BehaviourMode -> BehaviourMode -> Bool
+    Chase _ == Chase _           = True
+    Scatter _ == Scatter _       = True
+    Frightened _ == Frightened _ = True
+    Home _  == Home _            = True
+    _ == _                       = False
+  
   type Lives = Int
-
-  data Player = {
-    entity :: Entity,
-    lives :: Lives
-  }
-
-  data Ghost = {
-    entity :: Entity,
-    ghostName :: GhostType,
-    behaviourMode :: Behaviour
-  }
-
-  data PlayerGhost = {
-    entity :: Entity,
-    ghostName :: GhostType
-  }
+  
+  data Animation = MkAnimation
+    { frames     :: [Gloss.Picture]
+    , index      :: Int
+    , rate       :: Float
+    , lastUpdate :: Float
+    }
+  
+  -- Entity record that has all common types for each entity (ghost or player)
+  data Entity = MkEntity
+    { movement     :: Movement  -- holds all data regarding the movement
+    , oldDirection :: Direction -- record of the old direction used to differntiate between heading and direction
+    , animation    :: Maybe Animation
+    }
+  
+  -- player record
+  data Player = MkPlayer
+    { entity :: Entity
+    , lives  :: Lives
+    , score  :: Int
+    }
+  
+  -- ghost record
+  data Ghost = MkGhost
+    { entityG       :: Entity         -- all movement etc.
+    , ghostName     :: GhostType      -- name of the ghost (used for patternmatch and debug)
+    , behaviourMode :: BehaviourMode  -- current behaviour mode
+    , targetTile    :: EntityPosition -- current target Tile
+    , homeTile      :: EntityPosition -- respawn position
+    , scatterCorner :: EntityPosition -- targetTile when behaviour is scatter
+    , disAbleMove   :: Bool           -- disables the ghost
+    , homeTime      :: Float          -- number of seconds the ghost stays in home after being eaten
+    }
+  
+  instance Eq Ghost where
+    (==) :: Ghost -> Ghost -> Bool
+    g1 == g2 = ghostName g1 == ghostName g2
 \end{lstlisting}
 
 % levels
 \noindent The maze consists of two type of tiles, where each tile is an x by x square in a grid. The tile can be either a floor or a wall where each floor can be either one of the consumbles or an empty floor. The walls can be either a corner or a straight wall, each with their own orientation. This will be implemented as follows:
 \begin{lstlisting}[language=Haskell]
-  type Level = Int
+  data CornerOrientation = SE | NW | NE | SW deriving (Show)
 
-  data CornerOrientation = SE | NW | NE | SW
-  data WallOrientation   = Horizontal | Vertical
+  data WallOrientation = Horizontal | Vertical deriving (Show)
   
-  data WallShape  = Corner CornerOrientation
-                  | Wall WallOrientation 
-
-  data ConsumableType = Pellet | SuperPellet | Cherry
-
-  data FloorType = Consumable ConsumableType | EmptyTile
-  data Tile = Floor FloorType | Wall WallShape
+  data WallShape
+    = MkCorner CornerOrientation
+    | MkWallShape WallOrientation
+    deriving (Show)
+  
+  data ConsumableType = Pellet | SuperPellet deriving (Show, Eq)
+  
+  data FloorType = MkConsumable ConsumableType | EmptyTile deriving (Show)
+  
+  data Tile = MkFloor FloorType | MkWall WallShape deriving (Show)
 \end{lstlisting}
 
 
-The maze will utilise a Map structure in order to speed up execution. This would result in a reduction in the scaling from $O(n)$ to $O(logn)$ for tile lookup. As the program is expected to lookup a tile every time one has to check for collision, it is crucial that this takes as little time as possible. This is only possible if the key, which is the x and y coordinates of the tile, can be ordered. The instance below is an example but is important to show that the keys are indeed orderable. In this case it is possible using the implementation below. Thus, two tiles in the maze might look like: [((1, 0), Floor (Consumable Pellet)), ((2, 0), Wall (Corner SE))]. 
+The maze will utilise a Map structure in order to speed up execution. This would result in a reduction in the scaling from $O(n)$ to $O(logn)$ for tile lookup. As the program is expected to lookup a tile every time one has to check for collision, it is crucial that this takes as little time as possible. This is only possible if the key, which is the x and y coordinates of the tile, can be ordered. The instance below is an example but is important to show that the keys are indeed orderable. In this case it is possible using the implementation below. Thus, two tiles in the maze looks like: [((1, 0), Floor (Consumable Pellet)), ((2, 0), Wall (Corner SE))]. 
 
 \begin{lstlisting}[language=Haskell]
   type TilePosition = (Int, Int) -- (x, y)
 
   type Maze = Map TilePosition Tile
-
-  instance Ord TilePosition where 
-    (<=) (x, y) (a, b) | x < a = True 
-                       | x > a = False
-                       | Otherwise = y <= b
 \end{lstlisting}
 
 \newpage
 %gamestate
 The game state is the final data type that contains all the data of the game. It's job is to be the model in the MVC structure. 
 
-Some data types that have been added here, but not discussed before are some scorekeepers, like elapsedTime, score and level. Furthermore, the current status of the game, e.g., it being paused or running, is kept in the game state.
+The record entries that might not seem clear at first glance have been commented. It is important to make the destinction that "maze" contains a map with tile types, while "oldMaze" contains a picture with the most recently rendered maze.
+
+Furthermore, it might seem strange that the resolution of the window is stored in the gamestate. However, the ga
+
 \begin{lstlisting}[language=Haskell]
   type Name = String
 
@@ -243,13 +267,13 @@ Some data types that have been added here, but not discussed before are some sco
   data GameState = MkGameState
     { status      :: GameStatus
     , maze        :: Maze
-    , isNewMaze   :: Bool --boolean flag if the Maze has changed or not
+    , isNewMaze   :: Bool       -- boolean flag if the Maze has changed or not
     , oldMaze     :: Gloss.Picture
-    , sprites     :: Sprites --map of sprites
+    , sprites     :: Sprites    -- map of sprites, used in animations
     , elapsedTime :: Float
     , deltaTime   :: Float
     , enableDebug :: Bool
-    , windowInfo  :: WindowInfo --resolution of window
+    , windowInfo  :: WindowInfo -- resolution of window
     , player      :: Player
     , ghosts      :: [Ghost]
     , pelletC     :: (Int, Int) -- total vs eaten
@@ -261,54 +285,86 @@ Some data types that have been added here, but not discussed before are some sco
 
 
 \section{Minumum Requirements} \label{ch:minumumRequirements}
-\noindent \textbf{Player} The player can control Pac-Man, and the menus, using the WASD-keys on the keyboard.\\
+\noindent \textbf{Player} The player can control Pac-Man using the WASD-keys on the keyboard.\\
 
-\noindent \textbf{Enemies} The computer controls the red ghost, called Blinky. Blinky is the simplest of four ghost and tries to chase Pac-Man.\\
+\noindent \textbf{Enemies} The computer controls all of the four typical ghosts; Inky, Pinky, Blinky and Clyde.\\
 
 \noindent \textbf{Randomness} A ghost can exist in three states; Scatter, chase and frightened. When a ghost is frightened it will pick a random direction at each intersection.\\
 
-\noindent \textbf{Animation} The amount of animations in Pac-Man is limited. The animations that will be implemented are:
+\noindent \textbf{Animation} The amount of animations in Pac-Man is limited. The animations are implemented are:
 \begin{itemize}
   \item Pac-Man's walking animation
-  \item Pac-Man's death animation
   \item Ghost's movement
-  \item Ghost's frightened\\
+  \item Ghost's frightened
 \end{itemize}
 
-\noindent \textbf{Pause} The game can be paused using the "pause" or "esc" keys on the keyboard.\\
+\noindent \textbf{Pause} The game can be paused by p the "esc" key on the keyboard.\\
 
-\noindent \textbf{Interaction with the file system} A running highscore will be kept in a file.\\
+\noindent \textbf{Interaction with the file system} A running highscore is kept in a file. The top 10 highscores are kept, altough only the top is displayed.\\
 
 
 \newpage
 \section{Optional Requirements} \label{ch:optionalRequirements}
 
-\textbf{Levels} Originally, Pac-Man only contains one level, that gets more difficult as you complete them. At least one additional level will be added as an option for the player. In the chapter \ref{ch:dataTypes}, it was discussed how the maze data type is made. This type lends itself for easy creation of levels as one needs to simply provide each coordinate (written in tuple), with the desired tile type. Another option would be to write the levels as a single list of special characters, and making a function that converts to the key and value for the Map. The storage of each level may be accomplished through the utilisation of either the file system that parses the levels or the implementation of hard-coded levels.
+\textbf{Different enemies} Pac-Man contains several ghosts. Besides Blinky (red), additional ghosts are implemented; Pinky (pink), Inky (cyan) and Clyde (yellow). These ghosts all follow the traditional behaviour patterns. 
 
-\textbf{Different enemies} Pac-Man contains several ghosts. At a minimum Blinky will be implemented. Additional ghosts will be Pinky (pink), Inky (cyan) and Clyde (yellow), and if time allows, some additional ghosts could be added.
-
-\textbf{Multi-player} The original way to play against another player in Pac-Man is to beat eachother's highscore. Optionally, a way to control one of the ghosts will be added to the game. In order to simplify the process, the entities and player controller will be defined in the most abstract manner possible, thus facilitating the reuse of fucntions. For example, a "moveStep" function which could take in a current position and a numerical to change the position of an entity. As seen in chapter \ref{ch:dataTypes}, the ghosts and player use the same movement data type, thus facilitating the use of these generelized functions.
-
-\begin{lstlisting}
-  moveStep :: Entity -> Int -> Entity
-\end{lstlisting}
+\textbf{Comples graphics} Pac-Man and the Ghosts all have animations which are loaded from the file-system.
 
 
 \section{Pure/Impure seperation} \label{ch:pureSeperation}
-The goal is to go from impure to pure parts as soon as possible. To do this, we need to create functions that take only inputs from its parameters. For example, the highscore is kept in a file. Reading/writing this file uses impure function, but updating the list of highscores will be pure. Thus, reading/ writing will be impure but updating the highscore list is pure.
+In Haskell it's good practice to keep pure and impure as seperate as possible. In this game there's two major uses of the IO monad, image reading and highscore writing/reading. To avoid having the IO monad sprinkled throughout the codebase, these get loaded (using a bind) in the main function, then stored as pure data in the gamestate. 
 
-\begin{lstlisting}
-  saveHighscore ::  [Int] -> IO ()
-  updateHighscore :: [Int] -> Int -> [Int]
+Two example impure functions are
+
+\begin{lstlisting}[language=Haskell]
+  loadActiveSprites  :: IO [(Name, Sprite)]
+  loadActiveSprites' ::    [(Name, String)] -> IO [Sprite]
+\end{lstlisting}
+
+These are used in Main.hs to load images into to the gamestate, using the function 
+
+\begin{lstlisting}[language=Haskell]
+  storeActiveSprites :: [(Name, Sprite)] -> GameState -> GameState
+\end{lstlisting}
+
+Note how the type signature of this function contains GameState $\rightarrow$ GameState, input to output. This is a common theme throughout the game (e.g., Gloss.Picture $\rightarrow$ Gloss.Picture). This is done so that functions are easy to pipeline together. An example is shown below, from Main.hs.
+
+\begin{lstlisting}[language=Haskell]
+  -- store the new info in state
+  let
+    state =
+        ( storeActiveSprites sp
+        . storePlayerAnimation playerAnimation
+        . storeGhostAnimation [blinkyAnimation, pinkyAnimation, clydeAnimation, inkyAnimation]
+        . loadHighScores highScoreContents
+        ) initialState
 \end{lstlisting}
 
 \section{Abstraction} \label{ch:abstraction}
-Several steps for abstraction have already been taken. For example, the "moveStep" function takes an entity, and does not care which entity (player or NPC) it is actually a part of. Besides movement, entities are also alive or dead, using the data type "isAlive" 
+Several steps for abstraction have been taken. For example, the "moveStep" (In controller/EntityController.hs) function takes an entity, and does not care which entity (player or NPC) it is actually a part of. Because of the abstraction in the data types, this function can be used for the ghosts and player with no alteration. Furthermore, the animation record is identical for each entity, with the exception of the frames. 
 
-Furthermore, since tiles are both consumables or empty, it should be trivial to implement a function that updates a tile based on the position of the player. An example function might be
+Lastly, since tiles are both consumables or empty, it should be trivial to implement a function that updates a tile based on the position of the player. The function for this is given below, where the function arguments are the tile and player and state. The function than updates everything in the state based on the interaction between the tile and player.
 
-\begin{lstlisting}
-  updateTile :: Player -> Tile -> Tile
+\begin{lstlisting}[language=Haskell]
+  handleConsumable :: GameState -> Player -> Tile -> GameState
+  handleConsumable state player tile =
+    case retrieveConsumable' tile of
+      Just cType -> handleConsumable' state tilePos cType -- update score etc.
+      _          -> state
+   where
+    tilePos = getTilePos $ (position . movement . entity) player
+
+
+
+
+    
+  handleConsumable' :: GameState -> TilePosition -> ConsumableType -> GameState
+  handleConsumable' state@MkGameState{maze, player} pos cType =
+    checkPelletCount (state
+      { maze = Map.insert pos (MkFloor EmptyTile) maze --change tile to emptyTile
+        ...
+      }) (snd $ pelletC state)
+  
 \end{lstlisting}
 
 \end{document}

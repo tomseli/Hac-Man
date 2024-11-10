@@ -3,8 +3,6 @@ module Model.Entities where
 
 import qualified Graphics.Gloss as Gloss
 
-data IsAlive = Alive | Dead
-
 data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
 
 data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq, Show)
