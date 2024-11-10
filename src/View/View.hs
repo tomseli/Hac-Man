@@ -7,6 +7,8 @@ module View.View where
 
 import           Controller.EntityController
 
+import           Data.Foldable
+
 import qualified Graphics.Gloss.Data.Color   as Gloss
 import qualified Graphics.Gloss.Data.Picture as Gloss
 
@@ -39,10 +41,11 @@ render
             . renderPlayerAnimation player maze
             -- . renderBlinky blinky maze
             . renderGhosts ghosts maze
-            . renderMaze state
+            . renderLevel state
             . renderPlayerScore player
             . renderHighScore state
             . renderPlayerHealth player
+            . renderMaze state
         )
           Gloss.Blank
 
@@ -60,20 +63,16 @@ renderBlinky MkGhost{entityG} = renderEntity entityG circle
  where
   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
--- deprecated
--- renderBlinky :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
--- renderBlinky MkGhost{entityG} = renderEntity entityG circle
---  where
---   circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 24)
 
 renderGhosts :: [Ghost] -> Maze -> Gloss.Picture -> Gloss.Picture
-renderGhosts xs m pic = pic <> foldr f Gloss.blank xs
+renderGhosts xs m pic = foldr' f pic xs
   where f x = renderGhostAnimation x m
 
-renderDebugBlinky :: Ghost -> Maze -> Gloss.Picture
-renderDebugBlinky ghost = renderTargetTile (targetTile ghost) circle
- where
-  circle = Gloss.color Gloss.red (Gloss.ThickCircle 0 16)
+
+renderDebugGhost :: Ghost -> Gloss.Color -> Maze -> Gloss.Picture
+renderDebugGhost ghost color = renderTargetTile (targetTile ghost) circle
+  where
+    circle = Gloss.color color (Gloss.ThickCircle 0 16)
 
 renderTargetTile ::
   EntityPosition -> Gloss.Picture -> Maze -> Gloss.Picture
@@ -108,6 +107,15 @@ renderHighScore state pic =
           . Gloss.scale 0.25 0.25
        )
       (Gloss.color Gloss.white (Gloss.text $ "Highscore: \n" ++ show (retrieveHighScore (highscores state))))
+
+renderLevel :: GameState -> Gloss.Picture -> Gloss.Picture
+renderLevel state pic =
+  pic
+    <> ( Gloss.color Gloss.white
+          . Gloss.translate 50 (-950)
+          . Gloss.scale 0.25 0.25
+       )
+      (Gloss.color Gloss.white (Gloss.text $ "Level: \n" ++ show ( level state)))
 
 
 renderStatus :: GameState -> Gloss.Picture -> Gloss.Picture
@@ -174,18 +182,22 @@ renderLogo pic =
        )
       (Gloss.color Gloss.yellow (Gloss.text "PACMAN"))
 
+
 renderDebugInfo :: GameState -> Gloss.Picture -> Gloss.Picture
-renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky]} pic
+renderDebugInfo state@MkGameState{enableDebug = debug, maze = maze, ghosts = [blinky, pinky, clyde, inky]} pic
   | debug =
       pic
         <> renderNextPos ((entity . player) state) maze
         <> renderGameArea (Gloss.makeColor 0 1 0 0.15)
         <> renderDebugTimer state
         <> renderFPSCounter state
-        <> renderDebugBlinky blinky maze
+        <> renderDebugGhost blinky Gloss.red maze
+        <> renderDebugGhost pinky Gloss.rose maze
+        <> renderDebugGhost clyde Gloss.orange maze
+        <> renderDebugGhost inky Gloss.blue maze
         <> renderMazeRenderState (isNewMaze state)
   | otherwise = Gloss.Blank <> pic
-renderDebugInfo _ _ =  Gloss.Blank
+renderDebugInfo _ _ =  error "renderDebugInfo: Failed to pattern match (Missing initiated ghost)"
 
 
 renderDebugTimer :: GameState -> Gloss.Picture

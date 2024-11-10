@@ -36,10 +36,11 @@ initialState =
     , enableDebug = True
     , windowInfo = MkWindowInfo (0, 0)
     , player = initiatePlayer
-    , ghosts = [initiateblinky]
+    , ghosts = [initiateblinky, initiatePinky, initiateClyde, initiateInky]
     , pelletC = cntPellets customMaze
     , unfrightenTime = 0
     , highscores = []  -- not yet loaded
+    , level = 1
     }
 
 main :: IO ()
@@ -48,6 +49,9 @@ main = do
   sp <- loadActiveSprites
   playerAnimation <- loadPlayerAnimation
   blinkyAnimation <- loadBlinkyAnimation
+  pinkyAnimation  <- loadPinkyAnimation
+  clydeAnimation  <- loadClydeAnimation
+  inkyAnimation   <- loadInkyAnimation
   highScoreContents  <- readFile "src/highscores.txt"
 
   -- store the new info in state
@@ -55,9 +59,10 @@ main = do
     state =
         ( storeActiveSprites sp
         . storePlayerAnimation playerAnimation
-        . storeGhostAnimation [blinkyAnimation]
+        . storeGhostAnimation [blinkyAnimation, pinkyAnimation, clydeAnimation, inkyAnimation]
         . loadHighScores highScoreContents
         ) initialState
+
 
   GlossIO.playIO
     window

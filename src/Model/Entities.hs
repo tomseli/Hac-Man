@@ -7,7 +7,7 @@ data IsAlive = Alive | Dead
 
 data Direction = Left | Right | Up | Down | Still deriving (Eq, Show)
 
-data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq)
+data GhostType = Inky | Pinky | Blinky | Clyde deriving (Eq, Show)
 
 type EntityPosition = (Float, Float)
 
@@ -60,6 +60,7 @@ data Ghost = MkGhost
   , homeTile      :: EntityPosition
   , scatterCorner :: EntityPosition
   , disAbleMove   :: Bool
+  , homeTime      :: Float
   }
 
 instance Eq Ghost where
@@ -72,7 +73,7 @@ ghostEntity pos =
     { movement =
         MkMovement
           { direction =  Model.Entities.Still
-          , speed = 3
+          , speed = 4
           , position = pos
           , heading = Model.Entities.Still
           }
@@ -87,10 +88,51 @@ initiateblinky =
     { entityG = ghostEntity (15, -12) --spawnposition
     , ghostName = Blinky
     , behaviourMode = Home 0 --start in home for 0 seconds
-    , homeTile = (15, -12) -- position after reset (eaten)
+    , homeTile =  (15, -12) -- position after reset (eaten)
     , scatterCorner = (27, -2)
     , targetTile = (0, 0)
     , disAbleMove = True
+    , homeTime = 1
+    }
+
+initiatePinky :: Ghost
+initiatePinky =
+  MkGhost
+    { entityG = ghostEntity (15, -15) --spawnposition
+    , ghostName = Pinky
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile = (15, -15) -- position after reset (eaten)
+    , scatterCorner = (2, -2)
+    , targetTile = (0, 0)
+    , disAbleMove = True
+    , homeTime = 1
+    }
+
+
+initiateClyde :: Ghost
+initiateClyde =
+  MkGhost
+    { entityG = ghostEntity (16, -15) --spawnposition
+    , ghostName = Clyde
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile =  (16, -15) -- position after reset (eaten)
+    , scatterCorner = (2, -30)
+    , targetTile = (0, 0)
+    , disAbleMove = True
+    , homeTime = 7
+    }
+
+initiateInky :: Ghost
+initiateInky =
+  MkGhost
+    { entityG = ghostEntity (14, -15) --spawnposition
+    , ghostName = Inky
+    , behaviourMode = Home 0 --start in home for 0 seconds
+    , homeTile = (14, -15) -- position after reset (eaten)
+    , scatterCorner = (27, -30)
+    , targetTile = (0, 0)
+    , disAbleMove = True
+    , homeTime = 7
     }
 
 
@@ -101,7 +143,7 @@ pacmanEntity =
         MkMovement
           { direction = Still
           , speed = 6
-          , position = (2, -2)
+          , position = (14, -24)
           , heading = Still
           }
           , animation = Nothing -- animations are added later
@@ -116,3 +158,6 @@ initiatePlayer =
     , lives = 3
     , score = 0
     }
+
+playerSpawnPos :: EntityPosition
+playerSpawnPos = (14, -24)

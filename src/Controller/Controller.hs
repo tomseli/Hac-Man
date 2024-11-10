@@ -16,7 +16,7 @@ import           View.SaveHighScore
 
 step :: Float -> GameState -> IO GameState
 step dt state = do
-  let newState = checkGhosts $ gotoScatterGhosts $ state{ elapsedTime = elapsedTime state + dt
+  let newState = checkGhosts $ mainGameLoopGhosts $ state{ elapsedTime = elapsedTime state + dt
                                                         , deltaTime   = dt
                                                         , player      = updatePlayer dt state
                                                         , ghosts      = updateGhosts dt state
@@ -29,12 +29,10 @@ step dt state = do
                                  , oldMaze = renderMaze newState Gloss.Blank}
                     else newState
   let updateMaze = checkConsumable updateMaze' (player state) (maze state)
-  -- print $ show $ (lives.player) state
-  -- print $ show $ status updateMaze
-  -- print $ show $ behaviourMode (head $ ghosts state)
-  -- print $ "elapsedTime = " ++  show ( elapsedTime state)
-  -- print $ "unfrightenTime = " ++ show (unfrightenTime state)
-  -- print $ "deltaTime = " ++ show (unfrightenTime state - elapsedTime state)
+
+-- Print each ghost's name and behaviour mode
+  -- mapM_ (\ghost -> putStrLn $ show (ghostName ghost) ++ ": " ++ show (behaviourMode ghost)) (ghosts state)
+  -- putStrLn $ show $ elapsedTime state
   case status updateMaze of
     Running  -> return updateMaze
     Paused   -> return state
@@ -45,6 +43,7 @@ handleGameOver ::  GameState -> IO GameState
 handleGameOver state = do
                       nState <- saveHighscore (updateHighscore (highscores state) ((score.player) state)) state
                       return nState{status = GameOver}
+
 
 -- TODO: This function is difficult to expand
 -- see if we can make this better

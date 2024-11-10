@@ -4,8 +4,9 @@
 
 module Controller.EntityController where
 
-import qualified Data.Map       as Map
+import qualified Data.Map         as Map
 
+import           Model.CustomMaze
 import           Model.Entities
 import           Model.Maze
 import           Model.Model
@@ -109,6 +110,8 @@ getNextPos (x, y) dir ran = (x', y')
 getTilePos :: EntityPosition -> TilePosition
 getTilePos (x, y) = (fromIntegral @Int (round x), fromIntegral @Int (round (-y)))
 
+fromTilePos :: TilePosition -> EntityPosition
+fromTilePos (tileX, tileY) = (fromIntegral tileX, fromIntegral (-tileY))
 
 --consumables
 checkConsumable :: GameState -> Player -> Maze -> GameState
@@ -138,15 +141,60 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
     { maze = Map.insert pos (MkFloor EmptyTile) maze
     , isNewMaze = True
     , player = updateScore cType player
-    , pelletC = pelletC state -1
-    , ghosts  = if cType == SuperPellet
-                then reverseGhostDirections $ changeGhostBehaviour (ghosts state) (Frightened (elapsedTime state + 7))
-                else ghosts state
-    }) (pelletC state)
+    , pelletC = (fst (pelletC state), snd (pelletC state) - 1)
+    , ghosts  = if cType == SuperPellet then updateFrightendState state (ghosts state)  else ghosts state
+    }) (snd $ pelletC state)
+
+
+-----------------------------------------------------SHOULD BE IN GHOSTCONTROLLER--------------------------------------------------------------
+--if allowed to be frightend, frighten. Otherwise stay in home
+makeGhostFrightend :: GameState -> Ghost -> Ghost
+makeGhostFrightend gstate gh | isHome gh = gh
+                             | otherwise =  gh{behaviourMode = Frightened  (elapsedTime gstate + 7)}
+
+-- update all the ghosts that are allowed to be frightend, to frigthend
+updateFrightendState :: GameState -> [Ghost] -> [Ghost]
+updateFrightendState gstate xs = reverseGhostDirections [makeGhostFrightend gstate x | x <- xs]
+
+--check if the ghosts are allowed to be frightend
+isHome :: Ghost -> Bool
+isHome MkGhost{behaviourMode = Home _} = True
+isHome _                               = False
+
+--resets level
+resetLevel :: GameState -> GameState
+resetLevel state = state{ghosts = nGhosts, maze = nmaze, player = nplayer, pelletC = pellets, level = level state + 1}
+                  where
+                    nplayer = (player state){entity = resetEntityPos ((entity.player) state) playerSpawnPos}
+                    nmaze = customMaze
+                    nGhosts = map (\g -> g{entityG = (entityG g){movement = ((movement.entityG) g)
+                                  {speed = (speed.movement.entityG) g + 1}}}) (resetGhost state (ghosts state))
+                    pellets = (\(a,_) -> (a, a)) (pelletC state)
+
+resetGhost :: GameState -> [Ghost] -> [Ghost]
+resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
+
+
+resetGhost' ::  GameState -> Ghost -> Ghost
+resetGhost' gstate ghost@MkGhost{entityG} =
+   disableMovement ghost{entityG = resetEntityPos entityG (homeTile ghost),
+                         behaviourMode = Home (elapsedTime gstate + homeTime ghost)} -- stay in home for a set number of seconds after being eaten
+
+resetEntityPos :: Entity -> EntityPosition -> Entity
+resetEntityPos ent@MkEntity{movement = move} (x, y) = ent{movement = move{position = (x, y)}}
+
+enableMovement :: Ghost -> Ghost
+enableMovement g = g{disAbleMove = False}
+
+disableMovement :: Ghost -> Ghost
+disableMovement g = g{disAbleMove = True}
+
+
+----------------------------------------------------------------------------------------------------------------------------------
 
 --checks if all pellets are eaten
 checkPelletCount :: GameState -> Int -> GameState
-checkPelletCount state 0 = state{status = toggleGameOver state}
+checkPelletCount state 0 = resetLevel state
 checkPelletCount state _ = state
 
 -- update with the correct values
@@ -155,9 +203,10 @@ updateScore Pellet player      = player{score = score player + 10}
 updateScore SuperPellet player = player{score = score player + 50}
 updateScore Cherry player      = player{score = score player + 100}
 
-cntPellets :: Maze -> Int
-cntPellets = Map.foldr cntConsumables $ -1
+cntPellets :: Maze -> (Int, Int)
+cntPellets m = (nOfPellets, nOfPellets)
     where
+      nOfPellets  = Map.foldr cntConsumables (-1) m
       cntConsumables (MkFloor (MkConsumable _)) acc = acc + 1
       cntConsumables _ acc                          = acc
 

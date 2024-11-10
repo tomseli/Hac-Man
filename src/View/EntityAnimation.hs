@@ -19,6 +19,15 @@ loadPlayerAnimation = loadAnimation "assets\\pacman\\frame" 10
 loadBlinkyAnimation :: IO [Gloss.Picture]
 loadBlinkyAnimation = loadAnimation "assets\\blinky\\frame" 2
 
+loadPinkyAnimation :: IO [Gloss.Picture]
+loadPinkyAnimation = loadAnimation "assets\\pinky\\frame" 2
+
+loadInkyAnimation :: IO [Gloss.Picture]
+loadInkyAnimation = loadAnimation "assets\\inky\\frame" 2
+
+loadClydeAnimation :: IO [Gloss.Picture]
+loadClydeAnimation = loadAnimation "assets\\clyde\\frame" 2
+
 loadAnimation :: FilePath -> Int -> IO [Gloss.Picture]
 loadAnimation path n = mapM f (getAnimPathsPNG path n)
   where
@@ -70,4 +79,4 @@ renderGhostAnimation ghost@MkGhost{entityG} maze pic =
 
 renderAnimation :: Maybe Animation -> Gloss.Picture
 renderAnimation (Just MkAnimation{frames=xs, index=idx}) = xs !! idx
-renderAnimation Nothing                                  = Gloss.Blank
+renderAnimation Nothing                                  = error "Missing animation"
