@@ -73,7 +73,10 @@ renderPlayerAnimation :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
 renderPlayerAnimation player@MkPlayer{entity} maze pic =
   pic <> (transformToMaze maze . transformToPlayer player) (renderAnimation (animation entity))
 
+-- inverts the image when the ghost is frightened 
 renderGhostAnimation :: Ghost -> Maze -> Gloss.Picture -> Gloss.Picture
+renderGhostAnimation ghost@MkGhost{entityG, behaviourMode = Frightened _} maze pic =
+  pic <> (transformToMaze maze . transformToGhost ghost) (Gloss.scale 1 (-1) $ renderAnimation (animation entityG))
 renderGhostAnimation ghost@MkGhost{entityG} maze pic =
   pic <> (transformToMaze maze . transformToGhost ghost) (renderAnimation (animation entityG))
 
