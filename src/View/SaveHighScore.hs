@@ -10,6 +10,7 @@ import           Model.Model
 
 import           Text.Read   (readMaybe)
 
+--converts highscores into lines
 loadHighScores :: String -> GameState -> GameState
 loadHighScores str state = state{highscores = hscrs}
                            where hscrs = lines str
@@ -18,6 +19,7 @@ loadHighScores str state = state{highscores = hscrs}
 debugPrinthighScores :: HighScores -> IO ()
 debugPrinthighScores xs =  do mapM_ putStrLn xs
 
+--prints highscores to file returning state
 saveHighscore :: HighScores -> GameState -> IO GameState
 saveHighscore hscrs state = do
                               --Stops the file from being read when we want to write (Used length to evaluate the entire list, since length tranverses the entire list)
@@ -31,7 +33,7 @@ updateHighscore [] nHscr            = "HIGHSCORES:" : [show nHscr]  -- Handle th
 updateHighscore (header:rest) nHscr =
      header : take 10 (convertToListInt (quicksort $ convertToIntList $ rest ++ [show nHscr]))
 
---uit t boek
+--From the book: "Programming in Haskell" by Graham Hutton, Chapter Introduction
 quicksort :: [Int] -> [Int]
 quicksort [] = []
 quicksort (x:xs) =
@@ -47,6 +49,7 @@ convertToIntList = map (fromMaybe 0 . readMaybe)
 convertToListInt :: [Int] -> [String]
 convertToListInt = map show
 
+--save function to transform highscores into a single Integer (no. 1 highscore)
 retrieveHighScore :: HighScores -> Int
 retrieveHighScore []        = 0
 retrieveHighScore (_:score) = (fromMaybe 0 . readMaybe) $ fromMaybe [] (listToMaybe score)

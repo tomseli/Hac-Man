@@ -39,34 +39,37 @@ data Animation = MkAnimation
   , lastUpdate :: Float
   }
 
+-- Entity record that has all common types for each entity (ghost or player)
 data Entity = MkEntity
-  { movement     :: Movement
-  , oldDirection :: Direction
-  , alive        :: IsAlive
+  { movement     :: Movement --holds all data regarding the movement
+  , oldDirection :: Direction --record of the old direction used to differntiate between heading and direction
   , animation    :: Maybe Animation
   }
 
+--player record
 data Player = MkPlayer
   { entity :: Entity
   , lives  :: Lives
   , score  :: Int
   }
 
+--ghost record
 data Ghost = MkGhost
-  { entityG       :: Entity
-  , ghostName     :: GhostType
-  , behaviourMode :: BehaviourMode
-  , targetTile    :: EntityPosition
-  , homeTile      :: EntityPosition
-  , scatterCorner :: EntityPosition
-  , disAbleMove   :: Bool
-  , homeTime      :: Float
+  { entityG       :: Entity         --all movement etc.
+  , ghostName     :: GhostType      --name of the ghost (used for patternmatch and debug)
+  , behaviourMode :: BehaviourMode  --current behaviour mode
+  , targetTile    :: EntityPosition --current target Tile
+  , homeTile      :: EntityPosition --respawn position
+  , scatterCorner :: EntityPosition --targetTile when behaviour is scatter
+  , disAbleMove   :: Bool           --disables the ghost
+  , homeTime      :: Float -- number of seconds the ghost stays in home after being eaten
   }
 
 instance Eq Ghost where
   (==) :: Ghost -> Ghost -> Bool
   g1 == g2 = ghostName g1 == ghostName g2
 
+--a single template for all ghosts
 ghostEntity :: EntityPosition -> Entity
 ghostEntity pos =
   MkEntity
@@ -78,10 +81,11 @@ ghostEntity pos =
           , heading = Model.Entities.Still
           }
     , animation = Nothing
-    , alive = Alive
     , oldDirection = Still
     }
 
+
+-- below are all the initializations for each ghost
 initiateblinky :: Ghost
 initiateblinky =
   MkGhost
@@ -147,7 +151,6 @@ pacmanEntity =
           , heading = Still
           }
           , animation = Nothing -- animations are added later
-    , alive = Alive
     , oldDirection = Still
     }
 

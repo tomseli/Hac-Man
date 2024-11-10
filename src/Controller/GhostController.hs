@@ -25,6 +25,7 @@ listOfDirections =
   , Model.Entities.Down
   ]
 
+-- get all valid directions of a single entity
 getValidDirections :: Entity -> Maze -> [Direction]
 getValidDirections ent maz = [dir | dir <- listOfDirections, valid dir && not (invalid dir)]
  where
@@ -33,6 +34,7 @@ getValidDirections ent maz = [dir | dir <- listOfDirections, valid dir && not (i
     Just _  -> False
   invalid dir = dir ==  getOpDirection ent ((direction.movement) ent)
 
+-- based on a list of directions, retrieve a valid one
 chooseDirection :: Entity -> [Direction] -> EntityPosition -> EntityPosition -> Direction
 chooseDirection ent []  _ _ = (direction.movement) ent --go same direction
 chooseDirection _ xs (x, y) (x', y') =
@@ -40,15 +42,19 @@ chooseDirection _ xs (x, y) (x', y') =
     (comparing (\dir -> distanceTilePos (getNextPos (x, y) dir 1.0) (x', y')))
     xs
 
+--choose random direction if frightend
 chooseDirectionFrightened :: [Direction]  -> State StdGen Direction
 chooseDirectionFrightened directions = Control.Monad.State.state $ \gen ->
   let (index, nGen) = randomR (0, length directions - 1) gen
   in if index > -1 then (directions !! index, nGen)
        else (Model.Entities.Down, nGen) -- if ghosts have no valid direction, go down (arbitrary)
 
+--distance between tiles
 distanceTilePos :: EntityPosition -> EntityPosition -> Float
 distanceTilePos (x, y) (x', y') = ((x - x') * (x - x')) + ((y - y') * (y - y'))
 
+--if allowed to move, do collision check and change heading
+-- this function sends the ghosts in the direction of the targetiles
 moveGhost :: GameState -> Ghost -> Float -> Maze -> Entity
 moveGhost _ ghost@MkGhost{entityG = ent} dis maz | not (disAbleMove ghost) =
   moveWithCollision (checkValidHeading (changeHeadingEnt ent{oldDirection =
@@ -57,6 +63,7 @@ moveGhost _ ghost@MkGhost{entityG = ent} dis maz | not (disAbleMove ghost) =
     where
       decision = moveGhost' ent ghost maz
 
+-- get direction of a single ghost on behaviourmode
 moveGhost' :: Entity -> Ghost -> Maze -> Direction
 moveGhost' ent ghost maz  = direction
   where
@@ -70,11 +77,13 @@ moveGhost' ent ghost maz  = direction
               Frightened _-> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
               _           -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
 
+--updates all ghost targetTiles
 updateGhostPositions :: [Ghost] -> GameState -> [Ghost]
 updateGhostPositions [] _      = []
 updateGhostPositions xs gstate = [updateGhostPositions' x gstate | x <- xs]
 
 --implement target tile pos algorithms here
+--update function for the ghost targetTiles
 updateGhostPositions' :: Ghost -> GameState -> Ghost
 updateGhostPositions' gh@MkGhost{ghostName = Blinky} gstate = gh{targetTile = (position.movement.entity.player) gstate}
 updateGhostPositions' gh@MkGhost{ghostName = Pinky} gstate = gh{targetTile = (getNextPos $ (position.movement.entity.player) gstate) ((direction.movement.entity.player) gstate) 4}
@@ -83,15 +92,14 @@ updateGhostPositions' gh@MkGhost{ghostName = Inky} gstate = tilePositionInky (pl
 -- updateGhostPositions' g _      = g
 
 
--- Helper function to get Blinky's position
+-- Helper function to get a ghost position
 getGhost :: [Ghost] -> GhostType -> Ghost
 getGhost ghosts gtype =
-    case find (\g -> ghostName g == gtype) ghosts of
+    case find (\g -> ghostName g == gtype) ghosts of -- only for one ghosts
       Just blinky -> blinky
       Nothing     -> error "Ghost not found in the list of ghosts"
 
---not the most beautifull solution to get the correct tiledistance
--- not sure if this ACTUALLY the right algorithm for clyde but close enough ig
+--calculate clyde tilepostion
 tilePositionClyde :: Player -> Ghost -> Ghost
 tilePositionClyde player ghost | distanceTilePos playerPos ghostPos <= (4 * fst tileSize) =  ghost{targetTile = scatterCorner ghost}
                                | otherwise = ghost{targetTile = playerPos}
@@ -160,15 +168,14 @@ mainGameLoopGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
     toggleBehaviour ghost (Home _)        = ghost { behaviourMode = Scatter (elapsedTime + 7), entityG = (entityG ghost) { movement = (movement (entityG ghost)) { position = (15, -12) }}}
     toggleBehaviour ghost _               = ghost { behaviourMode = Chase (elapsedTime + 20)}
 
-
+--extract time from behaviour
 extractTime :: BehaviourMode -> Float
 extractTime (Chase time)      = time
 extractTime (Scatter time)    = time
 extractTime (Frightened time) = time
 extractTime (Home time)       = time
 
-
-
+--handels ghost/player interaction
 handleGhostInteraction :: GameState -> Ghost -> GameState
 handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
   | isFrightened g = gstate {
@@ -182,11 +189,7 @@ handleGhostInteraction gstate@MkGameState{ghosts = xs, player = p} g
     -- Reset all ghosts if the player is not invincible (not frightened state)
     resetAllGhosts = resetGhost gstate xs
     -- Reset player position and direction to ensure consistency
-    resetPlayer = changeDirPlayer (p { entity = resetEntityPos (entity p) playerSpawnPos, lives = lives p -1}) Still
-
-
-
-
+    resetPlayer = changeDirPlayer (p { entity = moveEntityPos (entity p) playerSpawnPos, lives = lives p -1}) Still
 
 -- chech ghost for Frigtend ignoring the time paramter
 isFrightened :: Ghost -> Bool

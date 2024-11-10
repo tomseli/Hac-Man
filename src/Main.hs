@@ -23,6 +23,8 @@ window :: Gloss.Display
 window = GlossIO.InWindow "Hac-Man" gameArea (0, 0)
 -- window = Gloss.FullScreen
 
+
+--initialize the gamestate
 initialState :: GameState
 initialState =
   MkGameState
@@ -33,12 +35,11 @@ initialState =
     , sprites = Map.empty
     , elapsedTime = 0
     , deltaTime = 0
-    , enableDebug = True
+    , enableDebug = False
     , windowInfo = MkWindowInfo (0, 0)
     , player = initiatePlayer
     , ghosts = [initiateblinky, initiatePinky, initiateClyde, initiateInky]
     , pelletC = cntPellets customMaze
-    , unfrightenTime = 0
     , highscores = []  -- not yet loaded
     , level = 1
     }
@@ -67,7 +68,7 @@ main = do
   GlossIO.playIO
     window
     Gloss.black
-    60
+    60 --fps
     state
     render
     eventHandler

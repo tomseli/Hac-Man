@@ -68,7 +68,7 @@ renderGhosts :: [Ghost] -> Maze -> Gloss.Picture -> Gloss.Picture
 renderGhosts xs m pic = foldr' f pic xs
   where f x = renderGhostAnimation x m
 
-
+--renders the targetTile of the ghost
 renderDebugGhost :: Ghost -> Gloss.Color -> Maze -> Gloss.Picture
 renderDebugGhost ghost color = renderTargetTile (targetTile ghost) circle
   where
@@ -83,12 +83,6 @@ renderTargetTile (x, y) bmap m  = transformToMaze
           ((y * snd tileSize) - (snd tileSize / 2))
           bmap
       )
-
--- deprecated
--- renderPlayer :: Player -> Maze -> Gloss.Picture -> Gloss.Picture
--- renderPlayer MkPlayer{entity} = renderEntity entity circle
---  where
---   circle = Gloss.color Gloss.yellow (Gloss.ThickCircle 0 32)
 
 renderPlayerScore :: Player -> Gloss.Picture -> Gloss.Picture
 renderPlayerScore MkPlayer{score} pic =

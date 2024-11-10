@@ -20,19 +20,18 @@ newtype WindowInfo = MkWindowInfo {resolution :: (Int, Int)}
 type HighScores = [String]
 
 data GameState = MkGameState
-  { status         :: GameStatus
-  , maze           :: Maze
-  , isNewMaze      :: Bool
-  , oldMaze        :: Gloss.Picture
-  , sprites        :: Sprites
-  , elapsedTime    :: Float
-  , deltaTime      :: Float
-  , enableDebug    :: Bool
-  , windowInfo     :: WindowInfo
-  , player         :: Player
-  , ghosts         :: [Ghost]
-  , pelletC        :: (Int, Int) -- total vs eaten
-  , unfrightenTime :: Float
-  , highscores     :: HighScores
-  , level          :: Int
+  { status      :: GameStatus
+  , maze        :: Maze
+  , isNewMaze   :: Bool --boolean flag if the Maze has changed or not
+  , oldMaze     :: Gloss.Picture
+  , sprites     :: Sprites --map of sprites
+  , elapsedTime :: Float
+  , deltaTime   :: Float
+  , enableDebug :: Bool
+  , windowInfo  :: WindowInfo --resolution of window
+  , player      :: Player
+  , ghosts      :: [Ghost]
+  , pelletC     :: (Int, Int) -- total vs eaten
+  , highscores  :: HighScores -- list of highscores (retrieved from file)
+  , level       :: Int        -- current level
   }

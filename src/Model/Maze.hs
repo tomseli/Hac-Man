@@ -22,15 +22,6 @@ type TilePosition = (Int, Int)
 type Maze = Map.Map TilePosition Tile
 
 -- Constructs a text maze with x*x size
--- does this function have redundant guards? yes
--- am i going to make a function purely for testing pretty? no
--- the maze should have the shape listed below
-{-
-XXXX
-X  X
-X  X
-XXXX
--}
 -- BUG: The ordering of the printing might not be correct!
 buildTestMaze :: Int -> Maze
 buildTestMaze n = go 0 Map.empty
