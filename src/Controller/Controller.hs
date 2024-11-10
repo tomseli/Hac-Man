@@ -9,6 +9,8 @@ import qualified Graphics.Gloss.Interface.IO.Game as Gloss
 import           Model.Entities
 import           Model.Model
 
+import Data.Char
+
 import           System.Exit
 
 import           View.RenderMaze
@@ -104,27 +106,15 @@ handleKeys (Gloss.EventKey key keyState _ _) state
   | otherwise = case key of
       -- Esc to terminate the application
       (Gloss.SpecialKey Gloss.KeyEsc) -> state{status = Quitting}
-      -- 'a' to turn player left
-      (Gloss.Char 'a') ->
-        state{player = changeHeadPlayer (player state) Model.Entities.Left}
-      -- 'w' to turn player up
-      (Gloss.Char 'w') ->
-        state{player = changeHeadPlayer (player state) Model.Entities.Up}
-      -- 's' to turn player Down
-      (Gloss.Char 's') ->
-        state{player = changeHeadPlayer (player state) Model.Entities.Down}
-      -- 's' to turn player Right
-      (Gloss.Char 'd') ->
-        state{player = changeHeadPlayer (player state) Model.Entities.Right}
-      -- 'p' pause the game
-      (Gloss.Char 'p') ->
-        state{status = togglePause state}
-      -- 'q' purposely crashes the game
-      (Gloss.Char 'q') ->
-        error ":("
-      -- o opens a debug overlay
-      (Gloss.Char 'o') ->
-        toggleDebug state
+      (Gloss.Char c) -> 
+        case toLower c of 
+          'a' -> state{player = changeHeadPlayer (player state) Model.Entities.Left}
+          'w' -> state{player = changeHeadPlayer (player state) Model.Entities.Up}
+          's' -> state{player = changeHeadPlayer (player state) Model.Entities.Down}
+          'd' -> state{player = changeHeadPlayer (player state) Model.Entities.Right}
+          'p' -> state{status = togglePause state}
+          'o' -> toggleDebug state
+          _ -> state
       _ -> state
 handleKeys _ state = state
 
