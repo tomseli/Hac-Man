@@ -11,7 +11,7 @@ data WallShape
   | MkWallShape WallOrientation
   deriving (Show)
 
-data ConsumableType = Pellet | SuperPellet | Cherry deriving (Show, Eq)
+data ConsumableType = Pellet | SuperPellet deriving (Show, Eq)
 
 data FloorType = MkConsumable ConsumableType | EmptyTile deriving (Show)
 

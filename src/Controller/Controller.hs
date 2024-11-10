@@ -20,10 +20,10 @@ step :: Float -> GameState -> IO GameState
 step dt state = do
   --save the next step so the Case statement below can choose between current and next state (for Pause and Gameover)
   let newState = checkGhosts $ mainGameLoopGhosts $ state{ elapsedTime = elapsedTime state + dt
-                                                        , deltaTime   = dt
-                                                        , player      = updatePlayer dt state
-                                                        , ghosts      = updateGhosts dt state
-                                                        }
+                                                         , deltaTime   = dt
+                                                         , player      = updatePlayer dt state
+                                                         , ghosts      = updateGhosts dt state
+                                                         }
   -- render optimization
   -- Updates the maze only if something in the maze has changed
   let updateMaze' = if isNewMaze newState

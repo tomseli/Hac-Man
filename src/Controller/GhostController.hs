@@ -32,7 +32,7 @@ getValidDirections ent maz = [dir | dir <- listOfDirections, valid dir && not (i
   valid dir = case checkEntCollision checkWall (changeDirEnt ent dir) 1 maz of
     Nothing -> True
     Just _  -> False
-  invalid dir = dir ==  getOpDirection ent ((direction.movement) ent)
+  invalid dir = dir == getOpDirection ent ((direction.movement) ent)
 
 -- based on a list of directions, retrieve a valid one
 chooseDirection :: Entity -> [Direction] -> EntityPosition -> EntityPosition -> Direction
@@ -74,22 +74,27 @@ moveGhost' ent ghost maz  = direction
             Frightened _ -> targetTile ghost
             Home _       -> homeTile ghost
     direction = case behaviourMode ghost of
-              Frightened _-> evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
-              _           -> chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
+              Frightened _ -> 
+                evalState (chooseDirectionFrightened (getValidDirections ent maz)) gen -- return direction
+              _            -> 
+                chooseDirection ent (getValidDirections ent maz) ((position.movement) ent) target
 
 --updates all ghost targetTiles
 updateGhostPositions :: [Ghost] -> GameState -> [Ghost]
 updateGhostPositions [] _      = []
-updateGhostPositions xs gstate = [updateGhostPositions' x gstate | x <- xs]
+updateGhostPositions xs gstate = [ updateGhostPositions' x gstate | x <- xs ]
 
 --implement target tile pos algorithms here
 --update function for the ghost targetTiles
 updateGhostPositions' :: Ghost -> GameState -> Ghost
-updateGhostPositions' gh@MkGhost{ghostName = Blinky} gstate = gh{targetTile = (position.movement.entity.player) gstate}
-updateGhostPositions' gh@MkGhost{ghostName = Pinky} gstate = gh{targetTile = (getNextPos $ (position.movement.entity.player) gstate) ((direction.movement.entity.player) gstate) 4}
-updateGhostPositions' gh@MkGhost{ghostName = Clyde} gstate = tilePositionClyde (player gstate) gh
-updateGhostPositions' gh@MkGhost{ghostName = Inky} gstate = tilePositionInky (player gstate)  (getGhost (ghosts gstate) Blinky) gh
--- updateGhostPositions' g _      = g
+updateGhostPositions' gh@MkGhost{ghostName = Blinky} gstate = 
+  gh{targetTile = (position.movement.entity.player) gstate}
+updateGhostPositions' gh@MkGhost{ghostName = Pinky}  gstate = 
+  gh{targetTile = (getNextPos $ (position.movement.entity.player) gstate) ((direction.movement.entity.player) gstate) 4}
+updateGhostPositions' gh@MkGhost{ghostName = Clyde}  gstate = 
+  tilePositionClyde (player gstate) gh
+updateGhostPositions' gh@MkGhost{ghostName = Inky}   gstate = 
+  tilePositionInky (player gstate)  (getGhost (ghosts gstate) Blinky) gh
 
 
 -- Helper function to get a ghost position
@@ -139,10 +144,10 @@ checkGhosts gstate@MkGameState{ghosts = xs, player = p} =
 
 -- Define conditions for Inky and Clyde to leave Home mode
 inkyPelletRequirement, clydePelletRequirement :: GameState -> Int
-inkyPelletRequirement _ = 30   -- Number of pellets eaten to release Inky
+inkyPelletRequirement  _                    = 30   -- Number of pellets eaten to release Inky
 clydePelletRequirement MkGameState{pelletC} = fst pelletC `div` 3  -- Number of pellets eaten to release Clyde
 
---Main game loop
+-- Main game loop
 mainGameLoopGhosts :: GameState -> GameState
 mainGameLoopGhosts gstate@MkGameState{ghosts, elapsedTime, pelletC} =
     gstate { ghosts = map updateGhostBehaviour ghosts }

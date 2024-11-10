@@ -80,6 +80,7 @@ renderGhostAnimation ghost@MkGhost{entityG, behaviourMode = Frightened _} maze p
 renderGhostAnimation ghost@MkGhost{entityG} maze pic =
   pic <> (transformToMaze maze . transformToGhost ghost) (renderAnimation (animation entityG))
 
+-- animation is rendered here, index is incremented in the controller "updateAnimation"
 renderAnimation :: Maybe Animation -> Gloss.Picture
 renderAnimation (Just MkAnimation{frames=xs, index=idx}) = xs !! idx
 renderAnimation Nothing                                  = error "Missing animation"

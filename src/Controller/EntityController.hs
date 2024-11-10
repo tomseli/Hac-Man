@@ -48,7 +48,6 @@ checkEntCollision f ent ran maze =
  where
   (x, y) = getNextPos ((position . movement) ent) ((direction . movement) ent) ran
 
-
 --given an entity return if the entity is in a wall
 checkWall :: Entity -> Tile -> Maybe Entity
 checkWall ent (MkWall _) =
@@ -78,7 +77,9 @@ checkValidHeading ent@MkEntity{movement = move} tol maze =
   let headingDir = (heading . movement) ent
       entity = changeDirEnt ent headingDir
    in case checkEntCollision checkWall entity 0.6 maze of
-        Nothing -> if snapToGridApproxEqual (x, y) tol then changeDirEnt ent{movement = move{position = snapToGrid ((position.movement) ent)}} headingDir else ent
+        Nothing -> if snapToGridApproxEqual (x, y) tol 
+                   then changeDirEnt ent{movement = move{position = snapToGrid ((position.movement) ent)}} headingDir 
+                   else ent
         Just _ -> ent
  where
   (x, y) = (position . movement) ent
@@ -165,8 +166,8 @@ handleConsumable' state@MkGameState{maze, player} pos cType =
 
 --if allowed to be frightend, frighten. Otherwise stay in home
 makeGhostFrightend :: GameState -> Ghost -> Ghost
-makeGhostFrightend gstate gh | isHome gh = gh
-                             | otherwise =  gh{behaviourMode = Frightened  (elapsedTime gstate + 7)}
+makeGhostFrightend gstate g  | isHome g  = g
+                             | otherwise = g{behaviourMode = Frightened  (elapsedTime gstate + 7)}
 
 -- update all the ghosts that are allowed to be frightend, to frigthend
 updateFrightendState :: GameState -> [Ghost] -> [Ghost]
@@ -193,9 +194,9 @@ resetGhost gstate xs = [resetGhost' gstate x | x <- xs]
 
 --helpet to reset a single ghost
 resetGhost' ::  GameState -> Ghost -> Ghost
-resetGhost' gstate ghost@MkGhost{entityG} =
-   disableMovement ghost{entityG = moveEntityPos entityG (homeTile ghost), --teleport to hometile
-                         behaviourMode = Home (elapsedTime gstate + homeTime ghost)} -- stay in home for a set number of seconds after being eaten
+resetGhost' gstate ghost@MkGhost{ entityG } =
+   disableMovement ghost{ entityG = moveEntityPos entityG (homeTile ghost)  --teleport to hometile
+                        , behaviourMode = Home (elapsedTime gstate + homeTime ghost)} -- stay in home for a set number of seconds after being eaten
 
 --teleports entity position to a target tile
 moveEntityPos :: Entity -> EntityPosition -> Entity
@@ -216,15 +217,14 @@ checkPelletCount state _ = state
 
 -- update with the correct values
 updateScore :: ConsumableType -> Player -> Player
-updateScore Pellet player      = player{score = score player + 10}
-updateScore SuperPellet player = player{score = score player + 50}
-updateScore Cherry player      = player{score = score player + 100}
+updateScore Pellet      player = player{ score = score player + 10 }
+updateScore SuperPellet player = player{ score = score player + 50 }
 
 -- Counts all the pellets in the Maze returning (Total, current)
 cntPellets :: Maze -> (Int, Int)
 cntPellets m = (nOfPellets, nOfPellets)
     where
-      nOfPellets  = Map.foldr cntConsumables (-1) m
+      nOfPellets                                    = Map.foldr cntConsumables (-1) m
       cntConsumables (MkFloor (MkConsumable _)) acc = acc + 1
       cntConsumables _ acc                          = acc
 
@@ -236,7 +236,7 @@ toggleGameOver MkGameState{status = x}        = x
 
 -- ghost player interaction
 changeGhostBehaviour :: [Ghost] -> BehaviourMode -> [Ghost]
-changeGhostBehaviour xs mode = [x{behaviourMode = mode} | x <-xs]
+changeGhostBehaviour xs mode = [ x{ behaviourMode = mode } | x <-xs ]
 
 -- reverses all ghosts
 reverseGhostDirections :: [Ghost] -> [Ghost]
